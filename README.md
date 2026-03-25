@@ -1,63 +1,88 @@
-# OPC — Project Management
+# OPC (One Person Company) — 守护每一个独自奔跑的灵魂
 
-Kanban-based project management for small teams and solo founders.
+> **“一个人，也可以是一支军队。”**
+> 这是一款为独立创业者、自由职业者及 1–10 人精干团队量身打造的极简项目管理系统。它不只是为了管理任务，更是为了守护你最宝贵的资源：**注意力与时间**。
 
-## Features
+---
 
-- **Multi-board kanban** with drag-and-drop ([@hello-pangea/dnd](https://github.com/hello-pangea/dnd))
-- **Rich task management** — markdown content, story points, assignees, AI model tags
-- **Qiniu image uploads** with MD5 deduplication (paste images directly in markdown editor)
-- **Sentry integration** — manage multiple Sentry accounts, view top issues
-- **AI auto-solve** — `/auto-solve-tasks` skill dispatches tasks to Claude/GPT/Gemini CLIs
-- **OAuth login** — bring your own OAuth 2.0 provider, no email/password needed
+## 我们的哲学：效率背后的简洁
 
-## Quick Start
+在 OPC 的世界里，AI 是你的数字员工。你负责战略决策和创意设计，它负责执行和数据运营。
+
+市面上的工具要么太沉重（如 Jira），让你迷失在配置里；要么太疏离，不支持国内的基础设施。OPC 遵循以下原则：
+
+- **保护注意力**：工具应该是无感的，不该为了“管理”而浪费你的“精力”。
+- **人机无缝分工**：原生支持 AI 模型标记（`claude` / `gpt` / `gemini`），任务分发给 AI 是一条命令的事。
+- **扎根国内生态**：内置七牛云、自持 OAuth、适配国内网络，无需折腾，开箱即用。
+- **极简即是自由**：基于 Next.js + Prisma，极低的部署和维护成本，一台入门级云服务器即可承载你的梦想。
+
+---
+
+## 它能为你分担什么？
+
+### 1. 像呼吸一样自然的看板管理
+- **自由流转**：基于 Trello 习惯的拖拽式看板，让工作流一目了然。
+- **视觉分级**：8 种封面色与彩色标签，一眼识别优先级，拒绝信息过载。
+
+### 2. 更有温度的任务细节
+- **清单与进度**：拆解复杂的任务，看着进度条一点点填满，是创业路上微小而确定的成就感。
+- **附件直传**：截图直接粘贴，自动上传至七牛云 CDN，让文档管理不再是负担。
+- **协作空间**：支持个人与多组织切换，无论你是独自战斗，还是带队突围，它都能陪你共同成长。
+
+### 3. Sentry 深度集成
+- 无需在多个后台间反复跳转，直接在看板内掌握项目的健康状况，把错误消灭在萌芽状态。
+
+### 4. AI 自动化（实验性功能）
+- 为任务打上 AI 标签，通过 CLI 一键让 AI 帮你写代码、查资料或处理数据。你负责掌舵，AI 负责划桨。
+
+---
+
+## 快速开始
+
+只需几分钟，搭建属于你的“数字总部”：
 
 ```bash
-git clone https://github.com/your-org/opc
+# 克隆并进入项目
+git clone https://github.com/ruilisi/opc
 cd opc
+
+# 安装依赖
 bun install
+
+# 配置环境变量
 cp .env.local.example .env.local
-# Fill in the variables in .env.local (see below)
+# 填写你的数据库、OAuth 及七牛云配置
+
+# 初始化数据库并启动
 bunx prisma migrate dev --name init
 bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and log in.
+现在，访问 `http://localhost:3000`，开始你的高效之旅。
 
-## Environment Variables
+---
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | 32+ random bytes for session signing |
-| `NEXT_PUBLIC_OAUTH_WEB_URL` | OAuth consent page base URL (e.g. `https://your-auth.example.com`) |
-| `NEXT_PUBLIC_OAUTH_API_URL` | OAuth API base URL for token exchange and userinfo |
-| `NEXT_PUBLIC_OAUTH_CLIENT_ID` | OAuth client ID (default: `opc`) |
-| `OAUTH_CLIENT_SECRET` | OAuth client secret |
-| `QINIU_ACCESS_KEY` | Qiniu access key (optional, for image uploads) |
-| `QINIU_SECRET_KEY` | Qiniu secret key |
-| `QINIU_BUCKET` | Qiniu bucket name |
-| `QINIU_DOMAIN` | Qiniu CDN domain |
-| `QINIU_FOLDER` | Qiniu key prefix / subfolder (optional) |
+## 我们在寻找这样的你
 
-## OAuth Setup
+- **独立开发者 / 创作者**：一个人维护多个产品，需要清晰的脑图和任务追踪。
+- **AI 创业者**：深度依赖 AI 工具，希望将管理与执行自动化。
+- **精干的小团队**：讨厌大公司的冗余流程，追求扁平化与极致效率。
 
-OPC uses the standard OAuth 2.0 authorization code flow. You need an OAuth provider that supports:
-- `GET /oauth/authorize` — authorization endpoint
-- `POST /oauth/token` — token endpoint
-- `GET /oauth/userinfo` — returns `{ id, nickname, avatar_url, email }`
+---
 
-Register a client with redirect URI `https://your-opc-domain.com/oauth/callback` and set the credentials in `.env.local`.
+## 路线图：未来的路
 
-## API Token (for CLI/skill access)
+- [ ] **AI 深度协作**：自动拆解复杂任务，生成周报，让你更懂自己的进度。
+- [ ] **时间线视图**：从全局视角把控项目的生命周期。
+- [ ] **移动端优化**：随时随地捕捉灵感。
+- [ ] **多语言支持**：让全球的 OPC 都能链接在一起。
 
-Go to **Settings → API Tokens** to generate a token for CLI use.
+---
 
-## Auto-Solve Skill
+## 结语
 
-```bash
-OPC_API_URL=http://localhost:3000 OPC_API_TOKEN=opc_... claude /auto-solve-tasks <board-id>
-```
+这个工具不是为了让你工作更多，而是为了让你能更有尊严、更从容地去创造价值。
 
-The skill reads tasks from the first column of the board and dispatches each to the AI CLI matching its `aiModelTag` (claude-*, gpt-*, gemini-*).
+如果你觉得它帮到了你，请给它一个 Star，或者分享给同样在路上的同路人。
+
+**License: MIT**
