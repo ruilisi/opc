@@ -54,7 +54,7 @@ export default function OrgsPage() {
                 <div className="flex flex-col gap-1">
                   <span className="font-medium">{org.name}</span>
                   <span className="text-xs text-muted-foreground capitalize">
-                    {org.members[0]?.role ?? 'member'}
+                    {org.members?.[0]?.role ?? 'member'}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

@@ -19,6 +19,7 @@ interface Org {
   id: string
   name: string
   members: Member[]
+  myRole: string
 }
 
 export default function OrgSettingsPage() {
@@ -32,20 +33,10 @@ export default function OrgSettingsPage() {
       .then((r) => r.json())
       .then((data: Org) => {
         setOrg(data)
-        // We'll get the current user role from the members list via the session
+        setMyRole(data.myRole ?? 'member')
       })
       .finally(() => setLoading(false))
   }, [orgId])
-
-  useEffect(() => {
-    if (!org) return
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((me: { id: string }) => {
-        const m = org.members.find((m) => m.user.id === me.id)
-        if (m) setMyRole(m.role)
-      })
-  }, [org])
 
   async function removeMember(userId: string) {
     const res = await fetch(`/api/orgs/${orgId}/members/${userId}`, { method: 'DELETE' })

@@ -18,5 +18,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
     },
   })
-  return NextResponse.json(org)
+  return NextResponse.json({ ...org, myRole: membership.role })
 }
