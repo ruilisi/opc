@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  oauthId      String   @unique
+  email        String?
+  name         String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  boardMembers BoardMember[]
+  assignedTasks Task[]  @relation("TaskAssignee")
+  comments     TaskComment[]
+  apiTokens    ApiToken[]
+}
+
+model Board {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  columns     Column[]
+  members     BoardMember[]
+}
+
+model BoardMember {
+  id      String @id @default(cuid())
+  role    String @default("member")
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([boardId, userId])
+}
+
+model Column {
+  id        String   @id @default(cuid())
+  name      String
+  order     Int
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id         String   @id @default(cuid())
+  title      String
+  content    String?
+  points     Int?
+  order      Float
+  aiModelTag String?
+  columnId   String
+  column     Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  assigneeId String?
+  assignee   User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  comments   TaskComment[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  content   String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SentryConfig {
+  id          String   @id @default(cuid())
+  name        String
+  dsn         String
+  orgSlug     String
+  projectSlug String
+  authToken   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AppSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model ApiToken {
+  id        String   @id @default(cuid())
+  name      String
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
