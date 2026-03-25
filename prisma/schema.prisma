@@ -19,7 +19,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   boardMembers BoardMember[]
-  assignedTasks Task[]  @relation("TaskAssignee")
+  taskMembers  TaskMember[]
   comments     TaskComment[]
   apiTokens    ApiToken[]
   orgMembers   OrgMember[]
@@ -68,6 +68,7 @@ model Board {
   org         Organization  @relation(fields: [orgId], references: [id])
   columns     Column[]
   members     BoardMember[]
+  labels      Label[]
 }
 
 model BoardMember {
@@ -92,19 +93,69 @@ model Column {
 }
 
 model Task {
-  id         String   @id @default(cuid())
-  title      String
-  content    String?
-  points     Int?
-  order      Float
-  aiModelTag String?
-  columnId   String
-  column     Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  assigneeId String?
-  assignee   User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  comments   TaskComment[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String        @id @default(cuid())
+  title       String
+  content     String?
+  points      Int?
+  order       Float
+  aiModelTag  String?
+  dueDate     DateTime?
+  cover       String?
+  columnId    String
+  column      Column        @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  members     TaskMember[]
+  labels      TaskLabel[]
+  checklist   ChecklistItem[]
+  attachments Attachment[]
+  comments    TaskComment[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model TaskMember {
+  id     String @id @default(cuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([taskId, userId])
+}
+
+model Label {
+  id      String      @id @default(cuid())
+  name    String
+  color   String
+  boardId String
+  board   Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks   TaskLabel[]
+}
+
+model TaskLabel {
+  taskId  String
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  @@id([taskId, labelId])
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  text      String
+  checked   Boolean  @default(false)
+  order     Int      @default(0)
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  url       String
+  name      String
+  size      Int
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model TaskComment {

@@ -23,7 +23,10 @@ export default async function BoardPage({ params }: Props) {
           tasks: {
             orderBy: { order: 'asc' },
             include: {
-              assignee: { select: { id: true, name: true, avatarUrl: true } },
+              members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+              labels: { include: { label: { select: { id: true, name: true, color: true } } } },
+              _count: { select: { checklist: true, attachments: true, comments: true } },
+              checklist: { where: { checked: true }, select: { id: true, checked: true, text: true, order: true } },
             },
           },
         },

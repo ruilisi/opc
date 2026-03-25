@@ -11,7 +11,10 @@ export async function GET(
   const task = await prisma.task.findUnique({
     where: { id: taskId },
     include: {
-      assignee: { select: { id: true, name: true, avatarUrl: true } },
+      members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+      labels: { include: { label: true } },
+      checklist: { orderBy: { order: 'asc' } },
+      attachments: { orderBy: { createdAt: 'asc' } },
       comments: {
         include: { author: { select: { id: true, name: true, avatarUrl: true } } },
         orderBy: { createdAt: 'asc' },
@@ -31,7 +34,7 @@ export async function PATCH(
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { taskId } = await params
   const body = await request.json()
-  const { title, content, points, aiModelTag, assigneeId } = body
+  const { title, content, points, aiModelTag, dueDate, cover } = body
   const task = await prisma.task.update({
     where: { id: taskId },
     data: {
@@ -39,9 +42,15 @@ export async function PATCH(
       ...(content !== undefined && { content }),
       ...(points !== undefined && { points }),
       ...(aiModelTag !== undefined && { aiModelTag }),
-      ...(assigneeId !== undefined && { assigneeId }),
+      ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+      ...(cover !== undefined && { cover }),
     },
-    include: { assignee: { select: { id: true, name: true, avatarUrl: true } } },
+    include: {
+      members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+      labels: { include: { label: true } },
+      checklist: { orderBy: { order: 'asc' } },
+      attachments: { orderBy: { createdAt: 'asc' } },
+    },
   })
   return NextResponse.json(task)
 }

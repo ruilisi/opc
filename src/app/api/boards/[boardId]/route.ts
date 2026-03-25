@@ -17,7 +17,8 @@ export async function GET(
           tasks: {
             orderBy: { order: 'asc' },
             include: {
-              assignee: { select: { id: true, name: true, avatarUrl: true } },
+              members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+              labels: { include: { label: { select: { id: true, name: true, color: true } } } },
             },
           },
         },

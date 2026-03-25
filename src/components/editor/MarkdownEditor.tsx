@@ -17,6 +17,7 @@ interface Props {
 
 export default function MarkdownEditor({ value, onChange, onBlur, placeholder, height = 600 }: Props) {
   const [editing, setEditing] = useState(false)
+  const [fading, setFading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
@@ -42,28 +43,19 @@ export default function MarkdownEditor({ value, onChange, onBlur, placeholder, h
     }
   }, [value, onChange])
 
-  // Blur: collapse to preview if focus leaves the entire container
-  function handleBlur(e: React.FocusEvent) {
-    if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
-      setEditing(false)
-      onBlur?.()
-    }
+  function switchTo(next: boolean) {
+    setFading(true)
+    setTimeout(() => {
+      setEditing(next)
+      setFading(false)
+    }, 120)
   }
 
-  if (!editing) {
-    return (
-      <div
-        data-color-mode="light"
-        onClick={() => setEditing(true)}
-        className="w-full min-h-[120px] rounded-md border border-transparent hover:border-border cursor-text transition-colors p-3 group"
-      >
-        {value ? (
-          <MDPreview source={value} style={{ background: 'transparent' }} />
-        ) : (
-          <span className="text-muted-foreground text-sm">{placeholder ?? 'Click to add description...'}</span>
-        )}
-      </div>
-    )
+  function handleBlur(e: React.FocusEvent) {
+    if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
+      switchTo(false)
+      onBlur?.()
+    }
   }
 
   return (
@@ -73,15 +65,29 @@ export default function MarkdownEditor({ value, onChange, onBlur, placeholder, h
       onBlur={handleBlur}
       data-color-mode="light"
       className="w-full"
+      style={{ transition: 'opacity 120ms ease', opacity: fading ? 0 : 1 }}
     >
-      <MDEditor
-        value={value}
-        onChange={(v) => onChange(v ?? '')}
-        height={height}
-        autoFocus
-        style={{ width: '100%' }}
-        textareaProps={{ placeholder }}
-      />
+      {!editing ? (
+        <div
+          onClick={() => switchTo(true)}
+          className="w-full min-h-[120px] rounded-md border border-transparent hover:border-border cursor-text transition-colors p-3"
+        >
+          {value ? (
+            <MDPreview source={value} style={{ background: 'transparent' }} />
+          ) : (
+            <span className="text-muted-foreground text-sm">{placeholder ?? 'Click to add description...'}</span>
+          )}
+        </div>
+      ) : (
+        <MDEditor
+          value={value}
+          onChange={(v) => onChange(v ?? '')}
+          height={height}
+          autoFocus
+          style={{ width: '100%' }}
+          textareaProps={{ placeholder }}
+        />
+      )}
     </div>
   )
 }
