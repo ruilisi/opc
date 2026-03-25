@@ -10,11 +10,12 @@ const MDPreview = dynamic(() => import('@uiw/react-md-editor').then((m) => m.def
 interface Props {
   value: string
   onChange: (value: string) => void
+  onBlur?: () => void
   placeholder?: string
   height?: number
 }
 
-export default function MarkdownEditor({ value, onChange, placeholder, height = 600 }: Props) {
+export default function MarkdownEditor({ value, onChange, onBlur, placeholder, height = 600 }: Props) {
   const [editing, setEditing] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -45,6 +46,7 @@ export default function MarkdownEditor({ value, onChange, placeholder, height = 
   function handleBlur(e: React.FocusEvent) {
     if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
       setEditing(false)
+      onBlur?.()
     }
   }
 

@@ -17,15 +17,21 @@ export async function GET(request: NextRequest) {
     },
     orderBy: { createdAt: 'desc' },
   })
-  return NextResponse.json(orgs)
+  // Sort: personal first, then enterprise
+  const sorted = [...orgs].sort((a, b) => {
+    if (a.type === 'personal' && b.type !== 'personal') return -1
+    if (a.type !== 'personal' && b.type === 'personal') return 1
+    return 0
+  })
+  return NextResponse.json(sorted)
 }
 
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // One org per owner
-  const existing = await prisma.orgMember.findFirst({ where: { userId, role: 'owner' } })
+  // One enterprise org per owner
+  const existing = await prisma.orgMember.findFirst({ where: { userId, role: 'owner', org: { type: 'enterprise' } } })
   if (existing) return NextResponse.json({ error: 'You already own an organization' }, { status: 409 })
 
   const { name, slug: rawSlug } = await request.json()
@@ -41,6 +47,7 @@ export async function POST(request: NextRequest) {
     data: {
       name: name.trim(),
       slug,
+      type: 'enterprise',
       members: { create: { userId, role: 'owner' } },
     },
     include: { _count: { select: { members: true } } },

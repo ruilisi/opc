@@ -55,6 +55,27 @@ export async function POST(request: NextRequest) {
     },
   })
 
+  // Ensure personal org exists (idempotent)
+  const hasPersonal = await prisma.orgMember.findFirst({
+    where: { userId: user.id, role: 'owner', org: { type: 'personal' } },
+  })
+  if (!hasPersonal) {
+    const baseSlug = `personal-${user.id.slice(-6)}`
+    let slug = baseSlug
+    const taken = await prisma.organization.findUnique({ where: { slug } })
+    if (taken) slug = `personal-${user.id.slice(-8)}`
+    const taken2 = await prisma.organization.findUnique({ where: { slug } })
+    if (taken2) slug = `personal-${user.id}`
+    await prisma.organization.create({
+      data: {
+        name: user.name,
+        slug,
+        type: 'personal',
+        members: { create: { userId: user.id, role: 'owner' } },
+      },
+    })
+  }
+
   // Sign session JWT
   const sessionToken = await signSession({ sub: user.id })
 

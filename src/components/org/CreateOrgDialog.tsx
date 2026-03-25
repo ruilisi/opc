@@ -8,8 +8,17 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Plus, Check, X, Loader } from 'lucide-react'
 
+interface OrgResult {
+  id: string
+  name: string
+  slug: string
+}
+
 interface Props {
-  onCreated: (org: unknown) => void
+  onCreated: (org: OrgResult) => void
+  // Controlled mode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 function toSlug(str: string) {
@@ -18,8 +27,10 @@ function toSlug(str: string) {
 
 type SlugState = 'idle' | 'checking' | 'available' | 'taken'
 
-export default function CreateOrgDialog({ onCreated }: Props) {
-  const [open, setOpen] = useState(false)
+export default function CreateOrgDialog({ onCreated, open: openProp, onOpenChange }: Props) {
+  const [openInternal, setOpenInternal] = useState(false)
+  const open = openProp !== undefined ? openProp : openInternal
+  const setOpen = (v: boolean) => { setOpenInternal(v); onOpenChange?.(v) }
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
   const [slugEdited, setSlugEdited] = useState(false)
@@ -88,10 +99,12 @@ export default function CreateOrgDialog({ onCreated }: Props) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
-        <Plus size={16} />
-        New Organization
-      </Button>
+      {openProp === undefined && (
+        <Button onClick={() => setOpen(true)}>
+          <Plus size={16} />
+          New Organization
+        </Button>
+      )}
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset() }}>
         <DialogContent>
           <DialogHeader>

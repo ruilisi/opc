@@ -9,21 +9,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Plus } from 'lucide-react'
 
-interface Org {
-  id: string
-  name: string
-}
-
 interface Props {
+  orgId: string
   onCreated: (board: unknown) => void
-  orgs?: Org[]
 }
 
-export default function CreateBoardDialog({ onCreated, orgs = [] }: Props) {
+export default function CreateBoardDialog({ orgId, onCreated }: Props) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [orgId, setOrgId] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -34,7 +28,7 @@ export default function CreateBoardDialog({ onCreated, orgs = [] }: Props) {
       const res = await fetch('/api/boards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, orgId: orgId || undefined }),
+        body: JSON.stringify({ name, description, orgId }),
       })
       if (!res.ok) throw new Error('Failed to create board')
       const board = await res.json()
@@ -42,7 +36,6 @@ export default function CreateBoardDialog({ onCreated, orgs = [] }: Props) {
       setOpen(false)
       setName('')
       setDescription('')
-      setOrgId('')
       toast.success('Board created')
     } catch {
       toast.error('Failed to create board')
@@ -71,22 +64,6 @@ export default function CreateBoardDialog({ onCreated, orgs = [] }: Props) {
               <Label htmlFor="description">Description (optional)</Label>
               <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this board for?" />
             </div>
-            {orgs.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="org">Organization (optional)</Label>
-                <select
-                  id="org"
-                  value={orgId}
-                  onChange={(e) => setOrgId(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">Personal</option>
-                  {orgs.map((o) => (
-                    <option key={o.id} value={o.id}>{o.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
             <Button type="submit" disabled={loading}>
               {loading ? 'Creating...' : 'Create Board'}
             </Button>

@@ -42,7 +42,6 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
   const [points, setPoints] = useState('')
   const [aiModelTag, setAiModelTag] = useState('')
   const [commentText, setCommentText] = useState('')
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (!taskId || !open) return
@@ -61,7 +60,6 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
 
   async function handleSave() {
     if (!task) return
-    setSaving(true)
     try {
       const res = await fetch(`/api/tasks/${task.id}`, {
         method: 'PATCH',
@@ -77,11 +75,8 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
       const updated = await res.json()
       setTask((t) => t ? { ...t, ...updated } : t)
       onUpdated(updated)
-      toast.success('Task saved')
     } catch {
       toast.error('Failed to save task')
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -124,10 +119,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
             <div className="flex gap-4">
               {/* Editor */}
               <div className="flex-1 min-w-0 flex flex-col gap-4">
-                <MarkdownEditor value={content} onChange={setContent} placeholder="Add description..." height={600} />
-                <Button onClick={handleSave} disabled={saving} className="self-end">
-                  {saving ? 'Saving...' : 'Save'}
-                </Button>
+                <MarkdownEditor value={content} onChange={setContent} onBlur={handleSave} placeholder="Add description..." height={600} />
                 <Separator />
                 <div className="flex flex-col gap-3">
                   <h4 className="text-sm font-semibold">Comments</h4>

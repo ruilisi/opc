@@ -29,6 +29,7 @@ model Organization {
   id          String        @id @default(cuid())
   name        String
   slug        String        @unique
+  type        String        @default("enterprise")
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   members     OrgMember[]
@@ -63,8 +64,8 @@ model Board {
   description String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  orgId       String?
-  org         Organization? @relation(fields: [orgId], references: [id])
+  orgId       String
+  org         Organization  @relation(fields: [orgId], references: [id])
   columns     Column[]
   members     BoardMember[]
 }
