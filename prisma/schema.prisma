@@ -26,13 +26,15 @@ model User {
 }
 
 model Organization {
-  id        String      @id @default(cuid())
-  name      String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  members   OrgMember[]
-  invites   OrgInvite[]
-  boards    Board[]
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  members     OrgMember[]
+  invites     OrgInvite[]
+  boards      Board[]
+  sentryOrgs  SentryOrg[]
 }
 
 model OrgMember {
@@ -124,6 +126,29 @@ model SentryConfig {
   authToken   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model SentryOrg {
+  id        String         @id @default(cuid())
+  name      String
+  orgSlug   String
+  authToken String
+  opcOrgId  String
+  opcOrg    Organization   @relation(fields: [opcOrgId], references: [id], onDelete: Cascade)
+  projects  SentryProject[]
+  createdAt DateTime       @default(now())
+  @@unique([opcOrgId, orgSlug])
+}
+
+model SentryProject {
+  id           String     @id @default(cuid())
+  name         String
+  projectSlug  String
+  dsn          String
+  sentryOrgId  String
+  sentryOrg    SentryOrg  @relation(fields: [sentryOrgId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  @@unique([sentryOrgId, projectSlug])
 }
 
 model AppSetting {

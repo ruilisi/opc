@@ -60,34 +60,65 @@ function QiniuSettings() {
 interface SentryConfig {
   id: string; name: string; orgSlug: string; projectSlug: string
 }
+interface SentryProject {
+  id: string; slug: string; name: string
+}
 
 function SentrySettings() {
   const [configs, setConfigs] = useState<SentryConfig[]>([])
-  const [form, setForm] = useState({ name: '', dsn: '', orgSlug: '', projectSlug: '', authToken: '' })
   const [showForm, setShowForm] = useState(false)
+  // Step 1 fields
+  const [name, setName] = useState('')
+  const [orgSlug, setOrgSlug] = useState('')
+  const [authToken, setAuthToken] = useState('')
+  // Step 2
+  const [projects, setProjects] = useState<SentryProject[] | null>(null)
+  const [selectedSlug, setSelectedSlug] = useState('')
+  const [fetching, setFetching] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetch('/api/settings/sentry').then((r) => r.json()).then(setConfigs)
   }, [])
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }))
+  function resetForm() {
+    setName(''); setOrgSlug(''); setAuthToken(''); setProjects(null); setSelectedSlug('')
+    setShowForm(false)
+  }
 
-  async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
+  async function fetchProjects(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setFetching(true)
     try {
+      const res = await fetch(`/api/settings/sentry/projects?orgSlug=${encodeURIComponent(orgSlug)}&authToken=${encodeURIComponent(authToken)}`)
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error ?? 'Failed') }
+      const data: SentryProject[] = await res.json()
+      setProjects(data)
+      if (data.length > 0) setSelectedSlug(data[0].slug)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to fetch projects')
+    } finally { setFetching(false) }
+  }
+
+  async function handleSave() {
+    if (!selectedSlug) return
+    setSaving(true)
+    try {
+      // Fetch DSN automatically
+      const dsnRes = await fetch(`/api/settings/sentry/dsn?orgSlug=${encodeURIComponent(orgSlug)}&projectSlug=${encodeURIComponent(selectedSlug)}&authToken=${encodeURIComponent(authToken)}`)
+      const { dsn } = dsnRes.ok ? await dsnRes.json() : { dsn: '' }
+
       const res = await fetch('/api/settings/sentry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ name: name || selectedSlug, dsn, orgSlug, projectSlug: selectedSlug, authToken }),
       })
       if (!res.ok) throw new Error('Failed')
       const config = await res.json()
       setConfigs((c) => [...c, config])
-      setShowForm(false)
-      setForm({ name: '', dsn: '', orgSlug: '', projectSlug: '', authToken: '' })
+      resetForm()
       toast.success('Sentry config added')
-    } catch { toast.error('Failed to add config') }
+    } catch { toast.error('Failed to add config') } finally { setSaving(false) }
   }
 
   async function handleDelete(id: string) {
@@ -111,18 +142,52 @@ function SentrySettings() {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {showForm && (
-          <form onSubmit={handleAdd} className="flex flex-col gap-3 rounded-lg border p-4">
-            {(['name', 'dsn', 'orgSlug', 'projectSlug', 'authToken'] as const).map((k) => (
-              <div key={k} className="flex flex-col gap-1">
-                <Label htmlFor={`s-${k}`}>{k}</Label>
-                <Input id={`s-${k}`} value={form[k]} onChange={set(k)} placeholder={k} type={k === 'authToken' ? 'password' : 'text'} required />
+          <div className="flex flex-col gap-3 rounded-lg border p-4">
+            {projects === null ? (
+              // Step 1: credentials
+              <form onSubmit={fetchProjects} className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="s-name">Config name (optional)</Label>
+                  <Input id="s-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Sentry" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="s-org">Organization slug</Label>
+                  <Input id="s-org" value={orgSlug} onChange={(e) => setOrgSlug(e.target.value)} placeholder="my-org" required />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="s-token">Auth token</Label>
+                  <Input id="s-token" value={authToken} onChange={(e) => setAuthToken(e.target.value)} type="password" placeholder="sntrys_..." required />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" size="sm" disabled={fetching}>{fetching ? 'Fetching...' : 'Fetch Projects'}</Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={resetForm}>Cancel</Button>
+                </div>
+              </form>
+            ) : (
+              // Step 2: pick project
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-muted-foreground">Found {projects.length} project{projects.length !== 1 ? 's' : ''} in <span className="font-medium text-foreground">{orgSlug}</span></p>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="s-project">Select project</Label>
+                  <select
+                    id="s-project"
+                    value={selectedSlug}
+                    onChange={(e) => setSelectedSlug(e.target.value)}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.slug}>{p.name} ({p.slug})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleSave} disabled={saving || !selectedSlug}>{saving ? 'Saving...' : 'Add Config'}</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setProjects(null)}>← Back</Button>
+                  <Button size="sm" variant="ghost" onClick={resetForm}>Cancel</Button>
+                </div>
               </div>
-            ))}
-            <div className="flex gap-2">
-              <Button type="submit" size="sm">Add Config</Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
-            </div>
-          </form>
+            )}
+          </div>
         )}
         {configs.map((c) => (
           <div key={c.id} className="flex items-center justify-between rounded-lg border p-3">

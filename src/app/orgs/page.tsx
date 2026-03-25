@@ -17,6 +17,7 @@ interface Org {
 export default function OrgsPage() {
   const [orgs, setOrgs] = useState<Org[]>([])
   const [loading, setLoading] = useState(true)
+  const alreadyOwns = orgs.some((o) => o.members?.[0]?.role === 'owner')
 
   useEffect(() => {
     fetch('/api/orgs')
@@ -30,7 +31,7 @@ export default function OrgsPage() {
       <div className="flex flex-col gap-6 p-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Organizations</h1>
-          <CreateOrgDialog onCreated={(org) => setOrgs((prev) => [org as Org, ...prev])} />
+          {!alreadyOwns && <CreateOrgDialog onCreated={(org) => setOrgs((prev) => [org as Org, ...prev])} />}
         </div>
         {loading ? (
           <div className="flex flex-col gap-3">

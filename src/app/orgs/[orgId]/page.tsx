@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import AppShell from '@/components/shared/AppShell'
 import InviteLinkCard from '@/components/org/InviteLinkCard'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
-import { UserX } from 'lucide-react'
+import { UserX, Bug } from 'lucide-react'
 
 interface Member {
   id: string
@@ -73,7 +74,14 @@ export default function OrgSettingsPage() {
   return (
     <AppShell>
       <div className="flex flex-col gap-6 p-6">
-        <h1 className="text-2xl font-bold">{org.name}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{org.name}</h1>
+          <Link href={`/orgs/${orgId}/sentry`}>
+            <Button variant="outline" size="sm">
+              <Bug size={14} /> Sentry
+            </Button>
+          </Link>
+        </div>
 
         {myRole === 'owner' && <InviteLinkCard orgId={orgId} />}
 
