@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Settings, User, LogOut } from 'lucide-react'
+import { LayoutDashboard, Settings, User, LogOut, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
@@ -18,6 +18,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: '/boards', icon: LayoutDashboard, label: 'Boards' },
+    { href: '/orgs', icon: Building2, label: 'Organizations' },
     { href: '/profile', icon: User, label: 'Profile' },
     { href: '/settings', icon: Settings, label: 'Settings' },
   ]

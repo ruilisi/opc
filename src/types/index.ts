@@ -22,3 +22,27 @@ export interface UserInfo {
   email?: string
   avatar_url?: string
 }
+
+export interface Org {
+  id: string
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface OrgMember {
+  id: string
+  role: string
+  userId: string
+  orgId: string
+  user: { id: string; name: string; avatarUrl?: string | null }
+}
+
+export interface OrgInvite {
+  id: string
+  token: string
+  orgId: string
+  createdBy: string
+  expiresAt?: string | null
+  createdAt: string
+}

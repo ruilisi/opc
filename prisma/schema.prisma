@@ -22,14 +22,47 @@ model User {
   assignedTasks Task[]  @relation("TaskAssignee")
   comments     TaskComment[]
   apiTokens    ApiToken[]
+  orgMembers   OrgMember[]
+}
+
+model Organization {
+  id        String      @id @default(cuid())
+  name      String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  members   OrgMember[]
+  invites   OrgInvite[]
+  boards    Board[]
+}
+
+model OrgMember {
+  id     String       @id @default(cuid())
+  role   String       @default("member")
+  orgId  String
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId String
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([orgId, userId])
+}
+
+model OrgInvite {
+  id        String       @id @default(cuid())
+  token     String       @unique @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy String
+  expiresAt DateTime?
+  createdAt DateTime     @default(now())
 }
 
 model Board {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  orgId       String?
+  org         Organization? @relation(fields: [orgId], references: [id])
   columns     Column[]
   members     BoardMember[]
 }
