@@ -25,6 +25,7 @@ export default function BoardTokensDialog({ boardId, open, onOpenChange }: Props
   const [creating, setCreating] = useState(false)
   const [createdToken, setCreatedToken] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [copiedPrompt, setCopiedPrompt] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -74,9 +75,49 @@ export default function BoardTokensDialog({ boardId, open, onOpenChange }: Props
 
   const apiBase = typeof window !== 'undefined' ? window.location.origin + '/api' : '/api'
 
+  function buildPrompt(token: string) {
+    return `You are a task execution agent with access to a project board via REST API.
+
+## Your access
+
+Base URL: ${apiBase}
+Auth header: Authorization: Bearer ${token}
+
+## Getting started
+
+First, call GET ${apiBase}/agent to load the full board. You will receive:
+- All columns (e.g. Todo, In Progress, Done)
+- All tasks with title, content, checklist, due dates, labels
+- A meta.actions map describing every available operation
+
+## Your job
+
+1. Call GET ${apiBase}/agent to orient yourself
+2. Pick the highest priority task from the Todo column (use labels, due dates, points as signals)
+3. Move it to In Progress: PATCH ${apiBase}/tasks/{taskId}/move  body: {"columnId": "<in_progress_col_id>"}
+4. Add a comment to say what you're doing: POST ${apiBase}/tasks/{taskId}/comments  body: {"content": "Starting: <your plan>"}
+5. Do the work
+6. Tick off checklist items as you complete them: PATCH ${apiBase}/tasks/{taskId}/checklist/{itemId}  body: {"checked": true}
+7. When done, add a summary comment and move the task to Done
+8. Repeat with the next task
+
+## Rules
+- Always add a comment before starting a task so humans can follow your progress
+- Never delete tasks unless explicitly instructed
+- If blocked, add a comment explaining why and move the task back to Todo
+- Prefer updating task content with your findings rather than just commenting`
+  }
+
+  function copyPrompt() {
+    if (!createdToken) return
+    navigator.clipboard.writeText(buildPrompt(createdToken))
+    setCopiedPrompt(true)
+    setTimeout(() => setCopiedPrompt(false), 2000)
+  }
+
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setCreatedToken(null) }}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg w-[min(90vw,512px)] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound size={16} />
@@ -90,21 +131,33 @@ export default function BoardTokensDialog({ boardId, open, onOpenChange }: Props
             <p className="text-sm font-medium text-green-800 dark:text-green-200">
               Token created — copy it now, it won't be shown again.
             </p>
-            <div className="flex gap-2 items-center">
-              <code className="flex-1 text-xs bg-white dark:bg-black border rounded px-3 py-2 break-all font-mono">
+            <div className="flex gap-2 items-center min-w-0">
+              <code className="flex-1 min-w-0 text-xs bg-white dark:bg-black border rounded px-3 py-2 break-all font-mono">
                 {createdToken}
               </code>
               <Button size="icon" variant="outline" onClick={copyToken}>
                 {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
               </Button>
             </div>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p className="font-medium">Quick start for AI agent:</p>
-              <pre className="bg-white dark:bg-black border rounded p-2 text-xs overflow-x-auto whitespace-pre-wrap">{`curl ${apiBase}/agent \\
-  -H "Authorization: Bearer ${createdToken}"`}</pre>
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Paste this prompt into Claude or any AI agent:</p>
+              <div className="relative">
+                <pre className="bg-white dark:bg-zinc-900 border rounded p-3 text-xs overflow-y-auto max-h-40 whitespace-pre-wrap break-words font-mono leading-relaxed">
+                  {buildPrompt(createdToken)}
+                </pre>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="absolute top-2 right-2 gap-1.5"
+                  onClick={copyPrompt}
+                >
+                  {copiedPrompt ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
+                  {copiedPrompt ? 'Copied!' : 'Copy prompt'}
+                </Button>
+              </div>
             </div>
             <Button size="sm" variant="outline" className="w-full" onClick={() => setCreatedToken(null)}>
-              I've saved my token
+              Done
             </Button>
           </div>
         )}
@@ -130,11 +183,11 @@ export default function BoardTokensDialog({ boardId, open, onOpenChange }: Props
             No tokens yet. Create one to give an AI agent access to this board.
           </p>
         ) : (
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto overflow-x-hidden">
             {tokens.map((t) => (
               <div
                 key={t.id}
-                className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 min-w-0"
               >
                 <div>
                   <p className="text-sm font-medium">{t.name}</p>
