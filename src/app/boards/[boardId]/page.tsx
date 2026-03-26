@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import KanbanBoard from '@/components/board/KanbanBoard'
+import BoardHeader from '@/components/board/BoardHeader'
 import AppShell from '@/components/shared/AppShell'
 
 interface Props {
@@ -17,6 +18,7 @@ export default async function BoardPage({ params }: Props) {
   const board = await prisma.board.findFirst({
     where: { id: boardId, members: { some: { userId: session.sub } } },
     include: {
+      members: { where: { userId: session.sub }, select: { role: true } },
       columns: {
         orderBy: { order: 'asc' },
         include: {
@@ -36,15 +38,17 @@ export default async function BoardPage({ params }: Props) {
 
   if (!board) notFound()
 
+  const isOwner = board.members[0]?.role === 'owner'
+
   return (
     <AppShell>
       <div className="flex flex-col h-full min-h-0">
-        <div className="flex items-center border-b px-6 py-3 shrink-0">
-          <h1 className="text-xl font-bold">{board.name}</h1>
-          {board.description && (
-            <p className="ml-4 text-sm text-muted-foreground">{board.description}</p>
-          )}
-        </div>
+        <BoardHeader
+          boardId={board.id}
+          name={board.name}
+          description={board.description}
+          isOwner={isOwner}
+        />
         <div className="flex-1 min-h-0 overflow-hidden">
           <KanbanBoard boardId={board.id} initialColumns={board.columns as Parameters<typeof KanbanBoard>[0]['initialColumns']} />
         </div>

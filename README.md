@@ -32,8 +32,24 @@
 ### 3. Sentry 深度集成
 - 无需在多个后台间反复跳转，直接在看板内掌握项目的健康状况，把错误消灭在萌芽状态。
 
-### 4. AI 自动化（实验性功能）
-- 为任务打上 AI 标签，通过 CLI 一键让 AI 帮你写代码、查资料或处理数据。你负责掌舵，AI 负责划桨。
+### 4. AI Agent 原生支持
+
+**任务标签**：为任务打上 `claude` / `gpt` / `gemini` 标签，通过 CLI 一键分发给 AI 执行，你掌舵，AI 划桨。
+
+**Board Agent Token**：在看板设置里一键生成专属 API Token，把它交给 AI Agent，它就能独立完成整个工作流：
+
+- 读取看板全貌与所有任务（`GET /api/agent`）
+- 领取任务、移动状态（`PATCH /api/tasks/{id}/move`）
+- 更新内容、勾选清单、记录进度（评论）
+- 全程标准 REST，无需额外 SDK
+
+```bash
+# 给 Claude 的一行命令
+curl https://opc.ruilisi.com/api/agent \
+  -H "Authorization: Bearer opc_board_xxxxx"
+```
+
+Token 锁定在单个看板范围，不影响其他项目和账号数据。
 
 ---
 

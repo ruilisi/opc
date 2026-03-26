@@ -69,6 +69,16 @@ model Board {
   columns     Column[]
   members     BoardMember[]
   labels      Label[]
+  boardTokens BoardToken[]
+}
+
+model BoardToken {
+  id        String   @id @default(cuid())
+  name      String
+  tokenHash String   @unique
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model BoardMember {

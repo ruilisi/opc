@@ -18,12 +18,29 @@ export async function proxy(request: NextRequest) {
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7)
     const tokenHash = createHash('sha256').update(token).digest('hex')
+
+    // Full user token
     const apiToken = await prisma.apiToken.findUnique({ where: { tokenHash } })
     if (apiToken) {
       const response = NextResponse.next()
       response.headers.set('x-user-id', apiToken.userId)
       return response
     }
+
+    // Board-scoped token
+    const boardToken = await prisma.boardToken.findUnique({
+      where: { tokenHash },
+      include: { board: { include: { members: { where: { role: 'owner' } } } } },
+    })
+    if (boardToken) {
+      const owner = boardToken.board.members[0]
+      if (!owner) return NextResponse.json({ error: 'Board has no owner' }, { status: 403 })
+      const response = NextResponse.next()
+      response.headers.set('x-user-id', owner.userId)
+      response.headers.set('x-board-token-scope', boardToken.boardId)
+      return response
+    }
+
     return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
   }
 
