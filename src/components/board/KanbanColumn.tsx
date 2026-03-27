@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
-import { Droppable, Draggable } from '@hello-pangea/dnd'
+import { useState, useRef, useEffect } from 'react'
+import { Droppable, Draggable, type DraggableProvidedDragHandleProps } from '@hello-pangea/dnd'
 import TaskCard from './TaskCard'
 import ColumnHeader from './ColumnHeader'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,7 @@ interface Props {
   onTaskCreated: (task: Task) => void
   onColumnDeleted: (columnId: string) => void
   onColumnRenamed: (columnId: string, name: string) => void
-  dragHandleProps?: React.HTMLAttributes<HTMLElement> | null
+  dragHandleProps?: DraggableProvidedDragHandleProps | null
 }
 
 export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, dragHandleProps }: Props) {
@@ -77,7 +77,7 @@ export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onCol
 
   return (
     <div className="w-64 shrink-0 flex flex-col rounded-lg bg-muted/50 p-3 max-h-full">
-      <div {...(dragHandleProps ?? {})}>
+      <div {...(dragHandleProps ?? undefined)}>
         <ColumnHeader
           column={column}
           taskCount={column.tasks.length}

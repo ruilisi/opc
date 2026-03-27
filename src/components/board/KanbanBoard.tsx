@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import KanbanColumn from './KanbanColumn'
 import TaskDetailDialog from './TaskDetailDialog'
@@ -35,6 +35,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
 
     // Column reordering
     if (type === 'COLUMN') {
+      const originalColumns = columns
       const reordered = [...columns]
       const [moved] = reordered.splice(source.index, 1)
       reordered.splice(destination.index, 0, moved)
@@ -47,6 +48,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
           body: JSON.stringify({ order: newOrder }),
         })
       } catch {
+        setColumns(originalColumns)
         toast.error('Failed to save column position')
       }
       return
@@ -173,7 +175,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                         onTaskCreated={(task) => handleTaskCreated(col.id, task)}
                         onColumnDeleted={handleColumnDeleted}
                         onColumnRenamed={handleColumnRenamed}
-                        dragHandleProps={provided.dragHandleProps as React.HTMLAttributes<HTMLElement>}
+                        dragHandleProps={provided.dragHandleProps}
                       />
                     </div>
                   )}
