@@ -8,12 +8,15 @@ export async function PATCH(
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { boardId, columnId } = await params
-  const { name } = await request.json()
+  const body = await request.json()
+  const data: { name?: string; order?: number } = {}
+  if (body.name !== undefined) data.name = body.name
+  if (body.order !== undefined) data.order = body.order
 
   const isMember = await prisma.boardMember.findFirst({ where: { boardId, userId } })
   if (!isMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const column = await prisma.column.update({ where: { id: columnId }, data: { name } })
+  const column = await prisma.column.update({ where: { id: columnId }, data })
   return NextResponse.json(column)
 }
 

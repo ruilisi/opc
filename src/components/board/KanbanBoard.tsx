@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DragDropContext, type DropResult } from '@hello-pangea/dnd'
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import KanbanColumn from './KanbanColumn'
 import TaskDetailDialog from './TaskDetailDialog'
 import { Button } from '@/components/ui/button'
@@ -29,10 +29,30 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   const [taskDialogOpen, setTaskDialogOpen] = useState(false)
 
   const onDragEnd = useCallback(async (result: DropResult) => {
-    const { source, destination, draggableId } = result
+    const { source, destination, draggableId, type } = result
     if (!destination) return
     if (source.droppableId === destination.droppableId && source.index === destination.index) return
 
+    // Column reordering
+    if (type === 'COLUMN') {
+      const reordered = [...columns]
+      const [moved] = reordered.splice(source.index, 1)
+      reordered.splice(destination.index, 0, moved)
+      const newOrder = destination.index * 1000
+      setColumns(reordered.map((c, i) => ({ ...c, order: i * 1000 })))
+      try {
+        await fetch(`/api/boards/${boardId}/columns/${draggableId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order: newOrder }),
+        })
+      } catch {
+        toast.error('Failed to save column position')
+      }
+      return
+    }
+
+    // Card reordering
     const srcCol = columns.find((c) => c.id === source.droppableId)
     const dstCol = columns.find((c) => c.id === destination.droppableId)
     if (!srcCol || !dstCol) return
@@ -78,7 +98,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
     } catch {
       toast.error('Failed to save position')
     }
-  }, [columns])
+  }, [columns, boardId])
 
   async function addColumn() {
     const name = prompt('Column name:')
@@ -129,24 +149,46 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   return (
     <>
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-4 overflow-x-auto p-4 h-full">
-          {columns.map((col) => (
-            <KanbanColumn
-              key={col.id}
-              column={col}
-              onTaskClick={(taskId) => { setSelectedTaskId(taskId); setTaskDialogOpen(true) }}
-              onTaskCreated={(task) => handleTaskCreated(col.id, task)}
-              onColumnDeleted={handleColumnDeleted}
-              onColumnRenamed={handleColumnRenamed}
-            />
-          ))}
-          <div className="shrink-0 w-64">
-            <Button variant="outline" className="w-full" onClick={addColumn}>
-              <Plus size={16} />
-              Add Column
-            </Button>
-          </div>
-        </div>
+        <Droppable droppableId="board" direction="horizontal" type="COLUMN">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="flex gap-4 overflow-x-auto p-4 h-full"
+            >
+              {columns.map((col, index) => (
+                <Draggable key={col.id} draggableId={col.id} index={index}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      style={{
+                        ...provided.draggableProps.style,
+                        opacity: snapshot.isDragging ? 0.85 : 1,
+                      }}
+                    >
+                      <KanbanColumn
+                        column={col}
+                        onTaskClick={(taskId) => { setSelectedTaskId(taskId); setTaskDialogOpen(true) }}
+                        onTaskCreated={(task) => handleTaskCreated(col.id, task)}
+                        onColumnDeleted={handleColumnDeleted}
+                        onColumnRenamed={handleColumnRenamed}
+                        dragHandleProps={provided.dragHandleProps as unknown as Record<string, unknown> | undefined}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+              <div className="shrink-0 w-64">
+                <Button variant="outline" className="w-full" onClick={addColumn}>
+                  <Plus size={16} />
+                  Add Column
+                </Button>
+              </div>
+            </div>
+          )}
+        </Droppable>
       </DragDropContext>
       <TaskDetailDialog
         taskId={selectedTaskId}

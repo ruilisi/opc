@@ -23,9 +23,10 @@ interface Props {
   onTaskCreated: (task: Task) => void
   onColumnDeleted: (columnId: string) => void
   onColumnRenamed: (columnId: string, name: string) => void
+  dragHandleProps?: Record<string, unknown>
 }
 
-export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed }: Props) {
+export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, dragHandleProps }: Props) {
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
@@ -76,13 +77,15 @@ export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onCol
 
   return (
     <div className="w-64 shrink-0 flex flex-col rounded-lg bg-muted/50 p-3 max-h-full">
-      <ColumnHeader
-        column={column}
-        taskCount={column.tasks.length}
-        onAddTask={openAdd}
-        onDeleted={onColumnDeleted}
-        onRenamed={onColumnRenamed}
-      />
+      <div {...(dragHandleProps as React.HTMLAttributes<HTMLDivElement>)}>
+        <ColumnHeader
+          column={column}
+          taskCount={column.tasks.length}
+          onAddTask={openAdd}
+          onDeleted={onColumnDeleted}
+          onRenamed={onColumnRenamed}
+        />
+      </div>
       <Droppable droppableId={column.id}>
         {(provided, snapshot) => (
           <div
