@@ -47,6 +47,12 @@ export interface Task {
   comments?: unknown[]
 }
 
+export interface BoardFilters {
+  labelIds: string[]
+  userIds: string[]
+  due: 'overdue' | 'today' | 'upcoming' | 'none' | null
+}
+
 export interface SessionPayload {
   sub: string // user.id
   iat?: number

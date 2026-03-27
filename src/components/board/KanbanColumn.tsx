@@ -7,7 +7,7 @@ import ColumnHeader from './ColumnHeader'
 import { Button } from '@/components/ui/button'
 import { Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
-import type { Task } from '@/types'
+import type { Task, BoardFilters } from '@/types'
 
 interface Column {
   id: string
@@ -17,15 +17,10 @@ interface Column {
   tasks: Task[]
 }
 
-interface Filters {
-  labelIds: string[]
-  userIds: string[]
-  due: 'overdue' | 'today' | 'upcoming' | 'none' | null
-}
-
 interface Props {
   column: Column
-  filters: Filters
+  filters: BoardFilters
+  isFiltered: boolean
   onTaskClick: (taskId: string) => void
   onTaskCreated: (task: Task) => void
   onColumnDeleted: (columnId: string) => void
@@ -33,7 +28,7 @@ interface Props {
   dragHandleProps?: DraggableProvidedDragHandleProps | null
 }
 
-export default function KanbanColumn({ column, filters, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, dragHandleProps }: Props) {
+export default function KanbanColumn({ column, filters, isFiltered, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, dragHandleProps }: Props) {
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
@@ -116,7 +111,7 @@ export default function KanbanColumn({ column, filters, onTaskClick, onTaskCreat
       <div {...(dragHandleProps ?? undefined)}>
         <ColumnHeader
           column={column}
-          taskCount={column.tasks.length}
+          taskCount={visibleTasks.length}
           onAddTask={openAdd}
           onDeleted={onColumnDeleted}
           onRenamed={onColumnRenamed}
@@ -132,7 +127,7 @@ export default function KanbanColumn({ column, filters, onTaskClick, onTaskCreat
             }`}
           >
             {visibleTasks.map((task, index) => (
-              <Draggable key={task.id} draggableId={task.id} index={index}>
+              <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={isFiltered}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}

@@ -8,13 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Filter } from 'lucide-react'
 import { computeOrder } from '@/lib/utils'
 import { toast } from 'sonner'
-import type { Task } from '@/types'
-
-interface Filters {
-  labelIds: string[]
-  userIds: string[]
-  due: 'overdue' | 'today' | 'upcoming' | 'none' | null
-}
+import type { Task, BoardFilters } from '@/types'
 
 interface Column {
   id: string
@@ -33,7 +27,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   const [columns, setColumns] = useState(initialColumns)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [taskDialogOpen, setTaskDialogOpen] = useState(false)
-  const [filters, setFilters] = useState<Filters>({ labelIds: [], userIds: [], due: null })
+  const [filters, setFilters] = useState<BoardFilters>({ labelIds: [], userIds: [], due: null })
   const [filterOpen, setFilterOpen] = useState(false)
   const filterPanelRef = useRef<HTMLDivElement>(null)
 
@@ -105,7 +99,9 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
     if (!srcCol || !dstCol) return
 
     const srcTasks = [...srcCol.tasks]
-    const [movedTask] = srcTasks.splice(source.index, 1)
+    const srcIdx = srcTasks.findIndex((t) => t.id === draggableId)
+    if (srcIdx === -1) return
+    const [movedTask] = srcTasks.splice(srcIdx, 1)
 
     let newOrder: number
     if (source.droppableId === destination.droppableId) {
@@ -311,6 +307,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                       <KanbanColumn
                         column={col}
                         filters={filters}
+                        isFiltered={isFiltered}
                         onTaskClick={(taskId) => { setSelectedTaskId(taskId); setTaskDialogOpen(true) }}
                         onTaskCreated={(task) => handleTaskCreated(col.id, task)}
                         onColumnDeleted={handleColumnDeleted}
