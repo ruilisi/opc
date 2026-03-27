@@ -14,9 +14,15 @@ export async function POST(
     include: {
       labels: true,
       checklist: { orderBy: { order: 'asc' } },
+      column: { select: { boardId: true } },
     },
   })
   if (!original) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const isMember = await prisma.boardMember.findFirst({
+    where: { boardId: original.column.boardId, userId },
+  })
+  if (!isMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   // Compute order for new task (place after all existing tasks in same column)
   const lastTask = await prisma.task.findFirst({
