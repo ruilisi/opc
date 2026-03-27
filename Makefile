@@ -1,7 +1,13 @@
-.PHONY: dev migrate migrate-create
+.PHONY: dev dev-online migrate migrate-create
 
 dev:
 	bun run dev
+
+dev-https:
+	bunx next dev --experimental-https
+
+dev-online:
+	REMOTE_API_URL=https://opc.ruilisi.com bun run dev
 
 # Run pending migrations against the database pointed to by DATABASE_URL.
 # Usage:

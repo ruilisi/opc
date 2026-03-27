@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import MarkdownEditor from '@/components/editor/MarkdownEditor'
 import UserAvatar from '@/components/shared/UserAvatar'
 import { toast } from 'sonner'
-import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft } from 'lucide-react'
+import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft, Trash2 } from 'lucide-react'
 import type { Task, ChecklistItem, Attachment, TaskMember, TaskLabel } from '@/types'
 
 interface BoardMemberUser {
@@ -30,6 +30,11 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   onUpdated: (task: Task) => void
+  // Create mode: provide columnId + boardId instead of taskId
+  columnId?: string | null
+  boardId?: string | null
+  onCreated?: (task: Task) => void
+  onDeleted?: (taskId: string) => void
 }
 
 function NewLabelForm({ boardId, onCreated }: { boardId: string; onCreated: (label: BoardLabel) => void }) {
@@ -64,7 +69,7 @@ function NewLabelForm({ boardId, onCreated }: { boardId: string; onCreated: (lab
   )
 }
 
-export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated }: Props) {
+export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated, columnId, boardId, onCreated, onDeleted }: Props) {
   const [task, setTask] = useState<Task | null>(null)
   const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState('')
@@ -88,6 +93,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [commentText, setCommentText] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [boardMembers, setBoardMembers] = useState<BoardMemberUser[]>([])
   const [boardLabels, setBoardLabels] = useState<BoardLabel[]>([])
   const [memberPickerOpen, setMemberPickerOpen] = useState(false)
@@ -97,7 +103,36 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
   const labelPickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!taskId || !open) return
+    if (!open) return
+
+    if (!taskId) {
+      // Create mode — reset fields and load board data
+      setTask(null)
+      setTitle('')
+      setContent('')
+      setPoints('')
+      setAiModelTag('')
+      setDueDate('')
+      setCover('')
+      setFolderPath('')
+      setMembers([])
+      setLabels([])
+      setChecklist([])
+      setAttachments([])
+      if (boardId) {
+        Promise.all([
+          fetch(`/api/boards/${boardId}/members`).then((r) => r.json()),
+          fetch(`/api/boards/${boardId}/labels`).then((r) => r.json()),
+          fetch(`/api/boards/${boardId}`).then((r) => r.json()),
+        ]).then(([bm, bl, board]) => {
+          setBoardMembers(bm.map((m: { user: BoardMemberUser }) => m.user))
+          setBoardLabels(bl)
+          setBoardBasePath(board.basePath ?? null)
+        })
+      }
+      return
+    }
+
     setLoading(true)
     fetch(`/api/tasks/${taskId}`)
       .then((r) => r.json())
@@ -128,7 +163,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
         }
       })
       .finally(() => setLoading(false))
-  }, [taskId, open])
+  }, [taskId, boardId, open])
 
   // Close pickers on outside click
   useEffect(() => {
@@ -142,6 +177,35 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
   }, [])
 
   async function handleSave() {
+    if (!title.trim()) return
+
+    // Create mode
+    if (!task && columnId) {
+      try {
+        const res = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            columnId,
+            title,
+            content: content || undefined,
+            points: points ? parseInt(points) : undefined,
+            aiModelTag: aiModelTag || undefined,
+            dueDate: dueDate || undefined,
+            cover: cover || undefined,
+            folderPath: folderPath.trim() || undefined,
+          }),
+        })
+        if (!res.ok) throw new Error('Failed')
+        const created = await res.json()
+        setTask(created)
+        onCreated?.({ ...created, members, labels, checklist, attachments })
+      } catch {
+        toast.error('Failed to create task')
+      }
+      return
+    }
+
     if (!task) return
     try {
       const res = await fetch(`/api/tasks/${task.id}`, {
@@ -281,6 +345,19 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
     } catch { /* ignore */ }
   }
 
+  async function handleDelete() {
+    if (!task) return
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed')
+      onOpenChange(false)
+      onDeleted?.(task.id)
+      toast.success('Task deleted')
+    } catch {
+      toast.error('Failed to delete task')
+    }
+  }
+
   async function handleComment() {
     if (!task || !commentText.trim()) return
     try {
@@ -309,7 +386,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
             <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-48 w-full" />
           </div>
-        ) : task ? (
+        ) : (task || (!task && columnId)) ? (
           <>
             {/* Cover */}
             {cover && (
@@ -318,16 +395,40 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
 
             <DialogHeader>
               <DialogTitle>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onBlur={handleSave}
-                  className="text-lg font-bold border-none shadow-none px-0 focus-visible:ring-0"
-                />
+                <div className="flex items-center gap-2 mr-8">
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onBlur={!task && columnId ? undefined : handleSave}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !task && columnId) handleSave() }}
+                    placeholder={!task ? 'Task title...' : undefined}
+                    autoFocus={!task}
+                    className="text-lg font-bold border-none shadow-none px-0 focus-visible:ring-0 flex-1"
+                  />
+                  {!task && columnId && (
+                    <Button size="sm" onClick={handleSave} disabled={!title.trim()}>
+                      Create
+                    </Button>
+                  )}
+                  {task && (
+                    confirmDelete ? (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-destructive">Delete?</span>
+                        <Button size="sm" variant="destructive" onClick={handleDelete}>Yes</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>No</Button>
+                      </div>
+                    ) : (
+                      <Button size="icon" variant="ghost" className="size-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+                        <Trash2 size={14} />
+                      </Button>
+                    )
+                  )}
+                </div>
               </DialogTitle>
             </DialogHeader>
 
             <div className="flex flex-col gap-5">
+              {task && <>
               {/* Members */}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Members</span>
@@ -418,6 +519,8 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                   </div>
                 </div>
               </div>
+
+              </>}
 
               {/* Due date & Cover */}
               <div className="flex gap-6 flex-wrap">
@@ -584,6 +687,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                 <MarkdownEditor value={content} onChange={setContent} onBlur={handleSave} placeholder="Add description..." height={300} />
               </div>
 
+              {task && <>
               {/* Checklist */}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -694,6 +798,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                   </Button>
                 </div>
               </div>
+              </>}
             </div>
           </>
         ) : null}

@@ -44,3 +44,5 @@ next-env.d.ts
 
 # helm secrets (contains production credentials)
 helm/secrets.yaml
+
+certificates

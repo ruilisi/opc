@@ -8,6 +8,22 @@ const PUBLIC_PATHS = ['/login', '/oauth/callback', '/api/auth/', '/invite/', '/a
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // In online mode, proxy /api/* directly to the remote server (except /api/auth/ which handles local sessions)
+  if (process.env.REMOTE_API_URL && pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/')) {
+    const remoteUrl = process.env.REMOTE_API_URL + pathname + request.nextUrl.search
+    const headers = new Headers(request.headers)
+    headers.delete('host')
+    const isBodyMethod = !['GET', 'HEAD'].includes(request.method)
+    const res = await fetch(remoteUrl, {
+      method: request.method,
+      headers,
+      body: isBodyMethod ? request.body : undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...(isBodyMethod && { duplex: 'half' } as any),
+    })
+    return new NextResponse(res.body, { status: res.status, headers: res.headers })
+  }
+
   // Allow public paths
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return NextResponse.next()

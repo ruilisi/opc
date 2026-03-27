@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { Droppable, Draggable } from '@hello-pangea/dnd'
 import TaskCard from './TaskCard'
 import ColumnHeader from './ColumnHeader'
-import CreateTaskDialog from './CreateTaskDialog'
 import type { Task } from '@/types'
 
 interface Column {
@@ -18,20 +16,18 @@ interface Column {
 interface Props {
   column: Column
   onTaskClick: (taskId: string) => void
-  onTaskCreated: (task: Task) => void
+  onAddTask: () => void
   onColumnDeleted: (columnId: string) => void
   onColumnRenamed: (columnId: string, name: string) => void
 }
 
-export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed }: Props) {
-  const [createOpen, setCreateOpen] = useState(false)
-
+export default function KanbanColumn({ column, onTaskClick, onAddTask, onColumnDeleted, onColumnRenamed }: Props) {
   return (
     <div className="w-64 shrink-0 flex flex-col rounded-lg bg-muted/50 p-3">
       <ColumnHeader
         column={column}
         taskCount={column.tasks.length}
-        onAddTask={() => setCreateOpen(true)}
+        onAddTask={onAddTask}
         onDeleted={onColumnDeleted}
         onRenamed={onColumnRenamed}
       />
@@ -65,12 +61,6 @@ export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onCol
           </div>
         )}
       </Droppable>
-      <CreateTaskDialog
-        columnId={column.id}
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreated={onTaskCreated}
-      />
     </div>
   )
 }

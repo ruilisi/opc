@@ -16,7 +16,13 @@ export default async function BoardPage({ params }: Props) {
   const { boardId } = await params
 
   const board = await prisma.board.findFirst({
-    where: { id: boardId, members: { some: { userId: session.sub } } },
+    where: {
+      id: boardId,
+      OR: [
+        { members: { some: { userId: session.sub } } },
+        { org: { members: { some: { userId: session.sub } } } },
+      ],
+    },
     include: {
       members: { where: { userId: session.sub }, select: { role: true } },
       columns: {

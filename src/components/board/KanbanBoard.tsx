@@ -27,6 +27,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   const [columns, setColumns] = useState(initialColumns)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [taskDialogOpen, setTaskDialogOpen] = useState(false)
+  const [createColumnId, setCreateColumnId] = useState<string | null>(null)
 
   const onDragEnd = useCallback(async (result: DropResult) => {
     const { source, destination, draggableId } = result
@@ -112,6 +113,12 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
     )
   }
 
+  function handleTaskDeleted(taskId: string) {
+    setColumns((cols) =>
+      cols.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== taskId) }))
+    )
+  }
+
   function handleColumnDeleted(columnId: string) {
     setColumns((cols) => cols.filter((c) => c.id !== columnId))
   }
@@ -128,8 +135,8 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
             <KanbanColumn
               key={col.id}
               column={col}
-              onTaskClick={(taskId) => { setSelectedTaskId(taskId); setTaskDialogOpen(true) }}
-              onTaskCreated={(task) => handleTaskCreated(col.id, task)}
+              onTaskClick={(taskId) => { setSelectedTaskId(taskId); setCreateColumnId(null); setTaskDialogOpen(true) }}
+              onAddTask={() => { setSelectedTaskId(null); setCreateColumnId(col.id); setTaskDialogOpen(true) }}
               onColumnDeleted={handleColumnDeleted}
               onColumnRenamed={handleColumnRenamed}
             />
@@ -145,8 +152,12 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
       <TaskDetailDialog
         taskId={selectedTaskId}
         open={taskDialogOpen}
-        onOpenChange={setTaskDialogOpen}
+        onOpenChange={(v) => { setTaskDialogOpen(v); if (!v) setCreateColumnId(null) }}
         onUpdated={handleTaskUpdated}
+        columnId={createColumnId}
+        boardId={boardId}
+        onCreated={(task) => { if (createColumnId) handleTaskCreated(createColumnId, task) }}
+        onDeleted={handleTaskDeleted}
       />
     </>
   )

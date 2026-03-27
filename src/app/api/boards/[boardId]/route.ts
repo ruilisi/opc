@@ -9,7 +9,13 @@ export async function GET(
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { boardId } = await params
   const board = await prisma.board.findFirst({
-    where: { id: boardId, members: { some: { userId } } },
+    where: {
+      id: boardId,
+      OR: [
+        { members: { some: { userId } } },
+        { org: { members: { some: { userId } } } },
+      ],
+    },
     include: {
       columns: {
         orderBy: { order: 'asc' },
