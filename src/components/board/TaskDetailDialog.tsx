@@ -410,7 +410,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
             {/* Cover */}
             {cover && (
               cover.startsWith('http')
-                ? <img src={cover} alt="" className="h-14 rounded-lg -mx-6 -mt-6 mb-0 shrink-0 object-cover w-full" />
+                ? <img src={cover} alt="Card cover" className="h-14 rounded-lg -mx-6 -mt-6 mb-0 shrink-0 object-cover w-full" />
                 : <div className="h-14 rounded-lg -mx-6 -mt-6 mb-0 shrink-0" style={{ backgroundColor: cover }} />
             )}
 
