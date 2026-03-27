@@ -28,7 +28,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   ]
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen">
       {/* Sidebar */}
       <aside className="flex w-56 shrink-0 flex-col border-r bg-card">
         <div className="flex h-14 items-center border-b px-4">
