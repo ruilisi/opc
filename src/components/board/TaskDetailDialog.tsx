@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import MarkdownEditor from '@/components/editor/MarkdownEditor'
 import UserAvatar from '@/components/shared/UserAvatar'
 import { toast } from 'sonner'
-import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft, Trash2 } from 'lucide-react'
+import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft, Trash2, Copy } from 'lucide-react'
 import type { Task, ChecklistItem, Attachment, TaskMember, TaskLabel } from '@/types'
 
 interface BoardMemberUser {
@@ -345,6 +345,19 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
     } catch { /* ignore */ }
   }
 
+  async function handleDuplicate() {
+    if (!task) return
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/copy`, { method: 'POST' })
+      if (!res.ok) throw new Error('Failed')
+      const copy = await res.json()
+      onCreated?.(copy)
+      toast.success('Card duplicated')
+    } catch {
+      toast.error('Failed to duplicate card')
+    }
+  }
+
   async function handleDelete() {
     if (!task) return
     try {
@@ -418,9 +431,14 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                         <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>No</Button>
                       </div>
                     ) : (
-                      <Button size="icon" variant="ghost" className="size-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
-                        <Trash2 size={14} />
-                      </Button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button size="icon" variant="ghost" className="size-7 shrink-0 text-muted-foreground" onClick={handleDuplicate} title="Duplicate card">
+                          <Copy size={14} />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="size-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}>
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     )
                   )}
                 </div>

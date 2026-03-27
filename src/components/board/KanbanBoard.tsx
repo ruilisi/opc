@@ -335,6 +335,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         onOpenChange={setTaskDialogOpen}
         onUpdated={handleTaskUpdated}
         onDeleted={handleTaskDeleted}
+        onCreated={(task) => task.columnId ? handleTaskCreated(task.columnId, task) : undefined}
       />
     </>
   )
