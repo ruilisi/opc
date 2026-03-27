@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import KanbanColumn from './KanbanColumn'
 import TaskDetailDialog from './TaskDetailDialog'
@@ -173,7 +173,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                         onTaskCreated={(task) => handleTaskCreated(col.id, task)}
                         onColumnDeleted={handleColumnDeleted}
                         onColumnRenamed={handleColumnRenamed}
-                        dragHandleProps={provided.dragHandleProps}
+                        dragHandleProps={provided.dragHandleProps as React.HTMLAttributes<HTMLElement>}
                       />
                     </div>
                   )}
