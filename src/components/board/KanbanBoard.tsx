@@ -173,7 +173,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                         onTaskCreated={(task) => handleTaskCreated(col.id, task)}
                         onColumnDeleted={handleColumnDeleted}
                         onColumnRenamed={handleColumnRenamed}
-                        dragHandleProps={provided.dragHandleProps as unknown as Record<string, unknown> | undefined}
+                        dragHandleProps={provided.dragHandleProps}
                       />
                     </div>
                   )}
