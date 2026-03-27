@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
       id: board.id,
       name: board.name,
       description: board.description,
+      basePath: board.basePath,
     },
     columns: board.columns.map((col) => ({
       id: col.id,
@@ -56,6 +57,7 @@ export async function GET(request: NextRequest) {
         dueDate: task.dueDate,
         cover: task.cover,
         aiModelTag: task.aiModelTag,
+        folderPath: task.folderPath,
         columnId: task.columnId,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt,
@@ -72,7 +74,7 @@ export async function GET(request: NextRequest) {
         getBoardSnapshot: `GET  ${apiBase}/agent`,
         getTask:          `GET  ${apiBase}/tasks/{taskId}`,
         createTask:       `POST ${apiBase}/tasks                              body: { columnId, title, content?, points?, aiModelTag? }`,
-        updateTask:       `PATCH ${apiBase}/tasks/{taskId}                   body: { title?, content?, dueDate?, points?, aiModelTag? }`,
+        updateTask:       `PATCH ${apiBase}/tasks/{taskId}                   body: { title?, content?, dueDate?, points?, aiModelTag?, folderPath? }`,
         moveTask:         `PATCH ${apiBase}/tasks/{taskId}/move              body: { columnId, order? }`,
         deleteTask:       `DELETE ${apiBase}/tasks/{taskId}`,
         addComment:       `POST ${apiBase}/tasks/{taskId}/comments           body: { content }`,
@@ -84,6 +86,7 @@ export async function GET(request: NextRequest) {
       },
       tips: [
         'Call getBoardSnapshot first to orient yourself — it returns all columns and tasks.',
+        'board.basePath is the root directory the team works from; task.folderPath is the sub-folder (relative to basePath).',
         'To claim a task: add yourself as a member via addComment or use updateTask to note you are working on it.',
         'To complete a task: move it to the rightmost column using moveTask.',
         'Use addComment to log progress so humans can follow along.',

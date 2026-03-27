@@ -34,7 +34,7 @@ export async function PATCH(
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { taskId } = await params
   const body = await request.json()
-  const { title, content, points, aiModelTag, dueDate, cover } = body
+  const { title, content, points, aiModelTag, dueDate, cover, folderPath } = body
   const task = await prisma.task.update({
     where: { id: taskId },
     data: {
@@ -44,6 +44,7 @@ export async function PATCH(
       ...(aiModelTag !== undefined && { aiModelTag }),
       ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
       ...(cover !== undefined && { cover }),
+      ...(folderPath !== undefined && { folderPath }),
     },
     include: {
       members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },

@@ -62,6 +62,7 @@ model Board {
   id          String        @id @default(cuid())
   name        String
   description String?
+  basePath    String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   orgId       String
@@ -111,6 +112,7 @@ model Task {
   aiModelTag  String?
   dueDate     DateTime?
   cover       String?
+  folderPath  String?
   columnId    String
   column      Column        @relation(fields: [columnId], references: [id], onDelete: Cascade)
   members     TaskMember[]

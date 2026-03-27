@@ -36,6 +36,7 @@ export interface Task {
   aiModelTag?: string | null
   dueDate?: string | null
   cover?: string | null
+  folderPath?: string | null
   columnId?: string
   column?: { id: string; name: string; boardId: string } | null
   members?: TaskMember[]

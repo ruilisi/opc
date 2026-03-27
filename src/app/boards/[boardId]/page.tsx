@@ -48,6 +48,7 @@ export default async function BoardPage({ params }: Props) {
           name={board.name}
           description={board.description}
           isOwner={isOwner}
+          basePath={board.basePath}
         />
         <div className="flex-1 min-h-0 overflow-hidden">
           <KanbanBoard boardId={board.id} initialColumns={board.columns as Parameters<typeof KanbanBoard>[0]['initialColumns']} />

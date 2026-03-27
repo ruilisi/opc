@@ -37,10 +37,14 @@ export async function PATCH(
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { boardId } = await params
-  const { name, description } = await request.json()
+  const { name, description, basePath } = await request.json()
   const board = await prisma.board.updateMany({
     where: { id: boardId, members: { some: { userId, role: 'owner' } } },
-    data: { ...(name && { name }), ...(description !== undefined && { description }) },
+    data: {
+      ...(name && { name }),
+      ...(description !== undefined && { description }),
+      ...(basePath !== undefined && { basePath }),
+    },
   })
   if (board.count === 0) return NextResponse.json({ error: 'Not found or forbidden' }, { status: 404 })
   return NextResponse.json({ ok: true })

@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import MarkdownEditor from '@/components/editor/MarkdownEditor'
 import UserAvatar from '@/components/shared/UserAvatar'
 import { toast } from 'sonner'
-import { Send, Plus, Check, X, Paperclip } from 'lucide-react'
+import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft } from 'lucide-react'
 import type { Task, ChecklistItem, Attachment, TaskMember, TaskLabel } from '@/types'
 
 interface BoardMemberUser {
@@ -73,6 +73,16 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
   const [aiModelTag, setAiModelTag] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [cover, setCover] = useState('')
+  const [folderPath, setFolderPath] = useState('')
+  const [folderSuggestions, setFolderSuggestions] = useState<{ path: string; count: number }[]>([])
+  const [folderPickerOpen, setFolderPickerOpen] = useState(false)
+  const [boardBasePath, setBoardBasePath] = useState<string | null>(null)
+  const folderPickerRef = useRef<HTMLDivElement>(null)
+  const [fsBrowserOpen, setFsBrowserOpen] = useState(false)
+  const [fsBrowsePath, setFsBrowsePath] = useState<string>('')
+  const [fsBrowseEntries, setFsBrowseEntries] = useState<string[]>([])
+  const [fsBrowseParent, setFsBrowseParent] = useState<string | null>(null)
+  const [fsBrowseLoading, setFsBrowseLoading] = useState(false)
   const [members, setMembers] = useState<TaskMember[]>([])
   const [labels, setLabels] = useState<TaskLabel[]>([])
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
@@ -99,6 +109,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
         setAiModelTag(t.aiModelTag ?? '')
         setDueDate(t.dueDate ? t.dueDate.slice(0, 10) : '')
         setCover(t.cover ?? '')
+        setFolderPath(t.folderPath ?? '')
         setMembers(t.members ?? [])
         setLabels(t.labels ?? [])
         setChecklist(t.checklist ?? [])
@@ -108,9 +119,11 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
           Promise.all([
             fetch(`/api/boards/${t.column.boardId}/members`).then((r) => r.json()),
             fetch(`/api/boards/${t.column.boardId}/labels`).then((r) => r.json()),
-          ]).then(([bm, bl]) => {
+            fetch(`/api/boards/${t.column.boardId}`).then((r) => r.json()),
+          ]).then(([bm, bl, board]) => {
             setBoardMembers(bm.map((m: { user: BoardMemberUser }) => m.user))
             setBoardLabels(bl)
+            setBoardBasePath(board.basePath ?? null)
           })
         }
       })
@@ -122,6 +135,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
     function handleClick(e: MouseEvent) {
       if (memberPickerRef.current && !memberPickerRef.current.contains(e.target as Node)) setMemberPickerOpen(false)
       if (labelPickerRef.current && !labelPickerRef.current.contains(e.target as Node)) setLabelPickerOpen(false)
+      if (folderPickerRef.current && !folderPickerRef.current.contains(e.target as Node)) setFolderPickerOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -140,6 +154,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
           aiModelTag: aiModelTag || null,
           dueDate: dueDate || null,
           cover: cover || null,
+          folderPath: folderPath.trim() || null,
         }),
       })
       if (!res.ok) throw new Error('Failed')
@@ -223,6 +238,47 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
     if (!task) return
     await fetch(`/api/tasks/${task.id}/attachments/${attachmentId}`, { method: 'DELETE' })
     setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
+  }
+
+  async function browseTo(path: string) {
+    setFsBrowseLoading(true)
+    try {
+      const res = await fetch(`/api/fs/browse?path=${encodeURIComponent(path)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      setFsBrowsePath(data.path)
+      setFsBrowseEntries(data.entries)
+      setFsBrowseParent(data.parent)
+    } finally {
+      setFsBrowseLoading(false)
+    }
+  }
+
+  function openFsBrowser() {
+    const startPath = boardBasePath || '~'
+    setFsBrowserOpen(true)
+    setFolderPickerOpen(false)
+    browseTo(startPath)
+  }
+
+  function selectBrowsedFolder(absPath: string) {
+    // Store relative path if inside basePath, else absolute
+    if (boardBasePath && absPath.startsWith(boardBasePath)) {
+      const rel = absPath.slice(boardBasePath.length).replace(/^\//, '')
+      setFolderPath(rel || '.')
+    } else {
+      setFolderPath(absPath)
+    }
+    setFsBrowserOpen(false)
+    setTimeout(handleSave, 0)
+  }
+
+  async function fetchFolderSuggestions() {
+    if (!task?.column?.boardId) return
+    try {
+      const res = await fetch(`/api/boards/${task.column.boardId}/folders`)
+      if (res.ok) setFolderSuggestions(await res.json())
+    } catch { /* ignore */ }
   }
 
   async function handleComment() {
@@ -395,6 +451,106 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Folder */}
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Folder</span>
+                {fsBrowserOpen ? (
+                  <div className="rounded-md border bg-popover shadow-sm overflow-hidden">
+                    <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/40">
+                      <button
+                        onClick={() => fsBrowseParent && browseTo(fsBrowseParent)}
+                        disabled={!fsBrowseParent}
+                        className="p-0.5 rounded hover:bg-accent disabled:opacity-30"
+                      >
+                        <ArrowLeft size={13} />
+                      </button>
+                      <span className="flex-1 text-xs font-mono truncate text-muted-foreground">{fsBrowsePath}</span>
+                      <button onClick={() => setFsBrowserOpen(false)} className="p-0.5 rounded hover:bg-accent">
+                        <X size={13} />
+                      </button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {fsBrowseLoading ? (
+                        <p className="px-3 py-2 text-xs text-muted-foreground">Loading…</p>
+                      ) : fsBrowseEntries.length === 0 ? (
+                        <p className="px-3 py-2 text-xs text-muted-foreground">No sub-folders</p>
+                      ) : fsBrowseEntries.map((name) => {
+                        const full = `${fsBrowsePath}/${name}`
+                        return (
+                          <div key={name} className="flex items-center group hover:bg-accent">
+                            <button
+                              className="flex flex-1 items-center gap-2 px-3 py-1.5 text-sm text-left"
+                              onClick={() => browseTo(full)}
+                            >
+                              <FolderOpen size={13} className="shrink-0 text-muted-foreground" />
+                              <span className="font-mono text-xs">{name}</span>
+                            </button>
+                            <button
+                              className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100"
+                              onClick={() => selectBrowsedFolder(full)}
+                            >
+                              Select
+                            </button>
+                            <button
+                              className="pr-3 py-1.5 opacity-0 group-hover:opacity-100"
+                              onClick={() => selectBrowsedFolder(full)}
+                            >
+                              <ChevronRight size={13} className="text-muted-foreground" />
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="border-t px-3 py-2 bg-muted/20">
+                      <button
+                        className="text-xs text-primary hover:underline"
+                        onClick={() => selectBrowsedFolder(fsBrowsePath)}
+                      >
+                        Select current folder
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative" ref={folderPickerRef}>
+                    <div className="flex items-center gap-1.5">
+                      <div className="relative flex-1">
+                        <Folder size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                        <Input
+                          value={folderPath}
+                          onChange={(e) => setFolderPath(e.target.value)}
+                          onFocus={() => { fetchFolderSuggestions(); setFolderPickerOpen(true) }}
+                          onBlur={handleSave}
+                          placeholder={boardBasePath ? 'src/components' : 'e.g. src/components'}
+                          className="h-8 pl-7 text-sm font-mono"
+                        />
+                      </div>
+                      <Button size="icon" variant="outline" className="size-8 shrink-0" onClick={openFsBrowser} title="Browse filesystem">
+                        <FolderOpen size={14} />
+                      </Button>
+                    </div>
+                    {folderPickerOpen && (
+                      <div className="absolute left-0 top-9 z-50 w-full rounded-md border bg-popover shadow-md p-1">
+                        {folderSuggestions.length > 0 ? folderSuggestions.map((s) => (
+                          <button
+                            key={s.path}
+                            onMouseDown={(e) => { e.preventDefault(); setFolderPath(s.path); setFolderPickerOpen(false); setTimeout(handleSave, 0) }}
+                            className="flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                          >
+                            <span className="font-mono text-xs">{s.path}</span>
+                            <span className="text-xs text-muted-foreground shrink-0">{s.count}×</span>
+                          </button>
+                        )) : (
+                          <p className="px-2 py-1.5 text-xs text-muted-foreground">No folders used yet — type or browse</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {boardBasePath && (
+                  <p className="text-xs text-muted-foreground">Relative to <span className="font-mono">{boardBasePath}</span></p>
+                )}
               </div>
 
               {/* Story points & AI model */}
