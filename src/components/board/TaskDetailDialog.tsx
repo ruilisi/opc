@@ -300,8 +300,14 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
 
   async function deleteAttachment(attachmentId: string) {
     if (!task) return
+    const attachment = attachments.find((a) => a.id === attachmentId)
     await fetch(`/api/tasks/${task.id}/attachments/${attachmentId}`, { method: 'DELETE' })
     setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
+    // If the deleted attachment was set as cover, clear it
+    if (attachment && cover === attachment.url) {
+      setCover('')
+      setTimeout(handleSave, 0)
+    }
   }
 
   async function browseTo(path: string) {
@@ -403,7 +409,9 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
           <>
             {/* Cover */}
             {cover && (
-              <div className="h-14 rounded-lg -mx-6 -mt-6 mb-0 shrink-0" style={{ backgroundColor: cover }} />
+              cover.startsWith('http')
+                ? <img src={cover} alt="" className="h-14 rounded-lg -mx-6 -mt-6 mb-0 shrink-0 object-cover w-full" />
+                : <div className="h-14 rounded-lg -mx-6 -mt-6 mb-0 shrink-0" style={{ backgroundColor: cover }} />
             )}
 
             <DialogHeader>
@@ -772,6 +780,13 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                         <span className="text-xs text-muted-foreground shrink-0">
                           {(a.size / 1024).toFixed(0)} KB
                         </span>
+                        <button
+                          onClick={() => { setCover(cover === a.url ? '' : a.url); setTimeout(handleSave, 0) }}
+                          className={`opacity-0 group-hover:opacity-100 transition-opacity text-xs shrink-0 ${cover === a.url ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+                          title={cover === a.url ? 'Remove cover' : 'Set as cover'}
+                        >
+                          {cover === a.url ? 'Cover ✓' : 'Cover'}
+                        </button>
                         <button
                           onClick={() => deleteAttachment(a.id)}
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"

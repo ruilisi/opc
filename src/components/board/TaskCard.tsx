@@ -35,7 +35,9 @@ export default function TaskCard({ task, onClick }: Props) {
     >
       {/* Cover strip */}
       {task.cover && (
-        <div className="h-8 w-full shrink-0" style={{ backgroundColor: task.cover }} />
+        task.cover.startsWith('http')
+          ? <img src={task.cover} alt="" className="h-20 w-full shrink-0 object-cover" />
+          : <div className="h-8 w-full shrink-0" style={{ backgroundColor: task.cover }} />
       )}
 
       <div className="flex flex-col gap-2 p-3">
