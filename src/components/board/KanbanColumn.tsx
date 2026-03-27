@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Droppable, Draggable, type DraggableProvidedDragHandleProps } from '@hello-pangea/dnd'
 import TaskCard from './TaskCard'
 import ColumnHeader from './ColumnHeader'
@@ -17,8 +17,15 @@ interface Column {
   tasks: Task[]
 }
 
+interface Filters {
+  labelIds: string[]
+  userIds: string[]
+  due: 'overdue' | 'today' | 'upcoming' | 'none' | null
+}
+
 interface Props {
   column: Column
+  filters: Filters
   onTaskClick: (taskId: string) => void
   onTaskCreated: (task: Task) => void
   onColumnDeleted: (columnId: string) => void
@@ -26,11 +33,40 @@ interface Props {
   dragHandleProps?: DraggableProvidedDragHandleProps | null
 }
 
-export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, dragHandleProps }: Props) {
+export default function KanbanColumn({ column, filters, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, dragHandleProps }: Props) {
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const visibleTasks = useMemo(() => {
+    return column.tasks.filter((task) => {
+      if (filters.labelIds.length > 0) {
+        const taskLabelIds = task.labels?.map((l) => l.label.id) ?? []
+        if (!filters.labelIds.some((id) => taskLabelIds.includes(id))) return false
+      }
+      if (filters.userIds.length > 0) {
+        const taskUserIds = task.members?.map((m) => m.user.id) ?? []
+        if (!filters.userIds.some((id) => taskUserIds.includes(id))) return false
+      }
+      if (filters.due) {
+        if (filters.due === 'none') {
+          if (task.dueDate) return false
+        } else {
+          if (!task.dueDate) return false
+          const d = new Date(task.dueDate)
+          const now = new Date()
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+          const tomorrow = new Date(today)
+          tomorrow.setDate(tomorrow.getDate() + 1)
+          if (filters.due === 'overdue' && d >= today) return false
+          if (filters.due === 'today' && (d < today || d >= tomorrow)) return false
+          if (filters.due === 'upcoming' && d < tomorrow) return false
+        }
+      }
+      return true
+    })
+  }, [column.tasks, filters])
 
   useEffect(() => {
     if (adding) textareaRef.current?.focus()
@@ -95,7 +131,7 @@ export default function KanbanColumn({ column, onTaskClick, onTaskCreated, onCol
               snapshot.isDraggingOver ? 'bg-muted' : ''
             }`}
           >
-            {column.tasks.map((task, index) => (
+            {visibleTasks.map((task, index) => (
               <Draggable key={task.id} draggableId={task.id} index={index}>
                 {(provided, snapshot) => (
                   <div

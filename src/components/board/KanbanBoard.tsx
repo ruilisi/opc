@@ -1,14 +1,20 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import KanbanColumn from './KanbanColumn'
 import TaskDetailDialog from './TaskDetailDialog'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Filter } from 'lucide-react'
 import { computeOrder } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Task } from '@/types'
+
+interface Filters {
+  labelIds: string[]
+  userIds: string[]
+  due: 'overdue' | 'today' | 'upcoming' | 'none' | null
+}
 
 interface Column {
   id: string
@@ -27,6 +33,45 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   const [columns, setColumns] = useState(initialColumns)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [taskDialogOpen, setTaskDialogOpen] = useState(false)
+  const [filters, setFilters] = useState<Filters>({ labelIds: [], userIds: [], due: null })
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterPanelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (filterPanelRef.current && !filterPanelRef.current.contains(e.target as Node)) {
+        setFilterOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const allLabels = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; color: string }>()
+    for (const col of columns) {
+      for (const task of col.tasks) {
+        for (const { label } of task.labels ?? []) {
+          map.set(label.id, label)
+        }
+      }
+    }
+    return [...map.values()]
+  }, [columns])
+
+  const allMembers = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; avatarUrl?: string | null }>()
+    for (const col of columns) {
+      for (const task of col.tasks) {
+        for (const { user } of task.members ?? []) {
+          map.set(user.id, user)
+        }
+      }
+    }
+    return [...map.values()]
+  }, [columns])
+
+  const isFiltered = filters.labelIds.length > 0 || filters.userIds.length > 0 || filters.due !== null
 
   const onDragEnd = useCallback(async (result: DropResult) => {
     const { source, destination, draggableId, type } = result
@@ -150,6 +195,100 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
 
   return (
     <>
+      {/* Filter toolbar */}
+      {(allLabels.length > 0 || allMembers.length > 0) && (
+        <div className="flex items-center gap-2 px-4 pt-2 pb-0 shrink-0">
+          <div className="relative">
+            <button
+              onClick={() => setFilterOpen((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors ${isFiltered ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
+            >
+              <Filter size={12} />
+              Filter
+              {isFiltered && (
+                <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-medium">
+                  {filters.labelIds.length + filters.userIds.length + (filters.due ? 1 : 0)}
+                </span>
+              )}
+            </button>
+            {filterOpen && (
+              <div ref={filterPanelRef} className="absolute left-0 top-8 z-50 w-64 rounded-md border bg-popover shadow-md p-3 flex flex-col gap-3">
+                {allLabels.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground">Labels</p>
+                    <div className="flex flex-wrap gap-1">
+                      {allLabels.map((label) => {
+                        const active = filters.labelIds.includes(label.id)
+                        return (
+                          <button
+                            key={label.id}
+                            onClick={() => setFilters((f) => ({
+                              ...f,
+                              labelIds: active ? f.labelIds.filter((id) => id !== label.id) : [...f.labelIds, label.id]
+                            }))}
+                            className={`flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium text-white transition-opacity ${active ? 'ring-2 ring-offset-1 ring-foreground' : 'opacity-70 hover:opacity-100'}`}
+                            style={{ backgroundColor: label.color }}
+                          >
+                            {label.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {allMembers.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground">Members</p>
+                    <div className="flex flex-wrap gap-1">
+                      {allMembers.map((user) => {
+                        const active = filters.userIds.includes(user.id)
+                        return (
+                          <button
+                            key={user.id}
+                            onClick={() => setFilters((f) => ({
+                              ...f,
+                              userIds: active ? f.userIds.filter((id) => id !== user.id) : [...f.userIds, user.id]
+                            }))}
+                            className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs transition-colors ${active ? 'border-primary bg-primary/10' : 'hover:bg-accent'}`}
+                          >
+                            {user.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-xs font-semibold text-muted-foreground">Due Date</p>
+                  <div className="flex flex-wrap gap-1">
+                    {(['overdue', 'today', 'upcoming', 'none'] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => setFilters((f) => ({ ...f, due: f.due === opt ? null : opt }))}
+                        className={`rounded-md border px-2 py-0.5 text-xs transition-colors ${filters.due === opt ? 'border-primary bg-primary/10 text-primary' : 'hover:bg-accent'}`}
+                      >
+                        {opt === 'none' ? 'No due date' : opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {isFiltered && (
+                  <button
+                    onClick={() => setFilters({ labelIds: [], userIds: [], due: null })}
+                    className="text-xs text-muted-foreground hover:text-foreground text-left"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="board" direction="horizontal" type="COLUMN">
           {(provided) => (
@@ -171,6 +310,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                     >
                       <KanbanColumn
                         column={col}
+                        filters={filters}
                         onTaskClick={(taskId) => { setSelectedTaskId(taskId); setTaskDialogOpen(true) }}
                         onTaskCreated={(task) => handleTaskCreated(col.id, task)}
                         onColumnDeleted={handleColumnDeleted}
