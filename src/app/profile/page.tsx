@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import UserAvatar from '@/components/shared/UserAvatar'
 import { toast } from 'sonner'
+import { useT } from '@/lib/i18n'
 
 interface User {
   id: string
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
+  const { t } = useT()
 
   useEffect(() => {
     fetch('/api/users/me').then((r) => r.json()).then((u) => {
@@ -40,9 +42,9 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error('Failed')
       const updated = await res.json()
       setUser(updated)
-      toast.success('Profile updated')
+      toast.success(t('profile_success'))
     } catch {
-      toast.error('Failed to update profile')
+      toast.error(t('profile_error'))
     } finally {
       setSaving(false)
     }
@@ -51,7 +53,7 @@ export default function ProfilePage() {
   return (
     <AppShell>
       <div className="p-6 max-w-lg">
-        <h1 className="mb-6 text-2xl font-bold">Profile</h1>
+        <h1 className="mb-6 text-2xl font-bold">{t('profile_title')}</h1>
         {user && (
           <Card>
             <CardHeader>
@@ -66,10 +68,12 @@ export default function ProfilePage() {
             <CardContent>
               <form onSubmit={handleSave} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="name">Display Name</Label>
+                  <Label htmlFor="name">{t('profile_display_name')}</Label>
                   <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
-                <Button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? t('profile_saving') : t('profile_save')}
+                </Button>
               </form>
             </CardContent>
           </Card>

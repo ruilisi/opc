@@ -9,6 +9,7 @@ import { Plus, Filter } from 'lucide-react'
 import { computeOrder } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Task, BoardFilters } from '@/types'
+import { useT } from '@/lib/i18n'
 
 interface Column {
   id: string
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function KanbanBoard({ boardId, initialColumns }: Props) {
+  const { t } = useT()
   const [columns, setColumns] = useState(initialColumns)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [taskDialogOpen, setTaskDialogOpen] = useState(false)
@@ -88,7 +90,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         })
       } catch {
         setColumns(originalColumns)
-        toast.error('Failed to save column position')
+        toast.error(t('board_column_pos_error'))
       }
       return
     }
@@ -139,12 +141,12 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         body: JSON.stringify({ columnId: dstCol.id, order: newOrder }),
       })
     } catch {
-      toast.error('Failed to save position')
+      toast.error(t('board_task_pos_error'))
     }
-  }, [columns, boardId])
+  }, [columns, boardId, t])
 
   async function addColumn() {
-    const name = prompt('Column name:')
+    const name = prompt(t('board_add_column_prompt'))
     if (!name) return
     try {
       const res = await fetch(`/api/boards/${boardId}/columns`, {
@@ -156,7 +158,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
       const col = await res.json()
       setColumns((c) => [...c, { ...col, tasks: [] }])
     } catch {
-      toast.error('Failed to add column')
+      toast.error(t('board_column_error'))
     }
   }
 
@@ -200,7 +202,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
               className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors ${isFiltered ? 'border-primary bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'}`}
             >
               <Filter size={12} />
-              Filter
+              {t('board_filter')}
               {isFiltered && (
                 <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground font-medium">
                   {filters.labelIds.length + filters.userIds.length + (filters.due ? 1 : 0)}
@@ -211,7 +213,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
               <div ref={filterPanelRef} className="absolute left-0 top-8 z-50 w-64 rounded-md border bg-popover shadow-md p-3 flex flex-col gap-3">
                 {allLabels.length > 0 && (
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-xs font-semibold text-muted-foreground">Labels</p>
+                    <p className="text-xs font-semibold text-muted-foreground">{t('board_labels')}</p>
                     <div className="flex flex-wrap gap-1">
                       {allLabels.map((label) => {
                         const active = filters.labelIds.includes(label.id)
@@ -235,7 +237,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
 
                 {allMembers.length > 0 && (
                   <div className="flex flex-col gap-1.5">
-                    <p className="text-xs font-semibold text-muted-foreground">Members</p>
+                    <p className="text-xs font-semibold text-muted-foreground">{t('board_members')}</p>
                     <div className="flex flex-wrap gap-1">
                       {allMembers.map((user) => {
                         const active = filters.userIds.includes(user.id)
@@ -257,7 +259,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                 )}
 
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-xs font-semibold text-muted-foreground">Due Date</p>
+                  <p className="text-xs font-semibold text-muted-foreground">{t('board_due_date')}</p>
                   <div className="flex flex-wrap gap-1">
                     {(['overdue', 'today', 'upcoming', 'none'] as const).map((opt) => (
                       <button
@@ -265,7 +267,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                         onClick={() => setFilters((f) => ({ ...f, due: f.due === opt ? null : opt }))}
                         className={`rounded-md border px-2 py-0.5 text-xs transition-colors ${filters.due === opt ? 'border-primary bg-primary/10 text-primary' : 'hover:bg-accent'}`}
                       >
-                        {opt === 'none' ? 'No due date' : opt.charAt(0).toUpperCase() + opt.slice(1)}
+                        {opt === 'none' ? t('board_due_none') : opt === 'overdue' ? t('board_due_overdue') : opt === 'today' ? t('board_due_today') : t('board_due_upcoming')}
                       </button>
                     ))}
                   </div>
@@ -276,7 +278,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                     onClick={() => setFilters({ labelIds: [], userIds: [], due: null })}
                     className="text-xs text-muted-foreground hover:text-foreground text-left"
                   >
-                    Clear all filters
+                    {t('board_clear_filters')}
                   </button>
                 )}
               </div>
@@ -322,7 +324,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
               <div className="shrink-0 w-64">
                 <Button variant="outline" className="w-full" onClick={addColumn}>
                   <Plus size={16} />
-                  Add Column
+                  {t('board_add_column')}
                 </Button>
               </div>
             </div>

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Task, BoardFilters } from '@/types'
+import { useT } from '@/lib/i18n'
 
 interface Column {
   id: string
@@ -33,6 +34,7 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { t } = useT()
 
   const visibleTasks = useMemo(() => {
     return column.tasks.filter((task) => {
@@ -92,7 +94,7 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
       setTitle('')
       textareaRef.current?.focus()
     } catch {
-      toast.error('Failed to create card')
+      toast.error(t('column_create_error'))
     } finally {
       setSaving(false)
     }
@@ -148,7 +150,6 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
         )}
       </Droppable>
 
-      {/* Inline add card form */}
       {adding ? (
         <div className="mt-2 flex flex-col gap-2">
           <textarea
@@ -156,13 +157,13 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Enter a title for this card…"
+            placeholder={t('column_add_ph')}
             rows={3}
             className="w-full resize-none rounded-lg border bg-card p-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
           />
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={handleAdd} disabled={!title.trim() || saving}>
-              Add card
+              {t('column_add_card')}
             </Button>
             <button onClick={closeAdd} className="text-muted-foreground hover:text-foreground">
               <X size={18} />
@@ -175,7 +176,7 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
           className="mt-2 flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <Plus size={16} />
-          Add a card
+          {t('column_add_a_card')}
         </button>
       )}
     </div>

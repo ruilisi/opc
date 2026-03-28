@@ -8,11 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { toast } from 'sonner'
 import { Trash2, Plus, Eye, EyeOff } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 // ---- Qiniu Settings ----
 function QiniuSettings() {
   const [form, setForm] = useState({ accessKey: '', secretKey: '', bucket: '', domain: '', folder: '' })
   const [saving, setSaving] = useState(false)
+  const { t } = useT()
 
   useEffect(() => {
     fetch('/api/settings/qiniu').then((r) => r.json()).then((d) => { if (d) setForm(d) })
@@ -31,15 +33,15 @@ function QiniuSettings() {
         body: JSON.stringify(form),
       })
       if (!res.ok) throw new Error('Failed')
-      toast.success('Qiniu settings saved')
-    } catch { toast.error('Failed to save') } finally { setSaving(false) }
+      toast.success(t('settings_qiniu_success'))
+    } catch { toast.error(t('settings_qiniu_error')) } finally { setSaving(false) }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Qiniu Storage</CardTitle>
-        <CardDescription>Configure image uploads via Qiniu CDN</CardDescription>
+        <CardTitle>{t('settings_qiniu_title')}</CardTitle>
+        <CardDescription>{t('settings_qiniu_desc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSave} className="flex flex-col gap-4">
@@ -49,7 +51,7 @@ function QiniuSettings() {
               <Input id={k} value={form[k]} onChange={set(k)} placeholder={k} type={k === 'secretKey' ? 'password' : 'text'} />
             </div>
           ))}
-          <Button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</Button>
+          <Button type="submit" disabled={saving}>{saving ? t('org_saving') : t('save')}</Button>
         </form>
       </CardContent>
     </Card>
@@ -67,15 +69,14 @@ interface SentryProject {
 function SentrySettings() {
   const [configs, setConfigs] = useState<SentryConfig[]>([])
   const [showForm, setShowForm] = useState(false)
-  // Step 1 fields
   const [name, setName] = useState('')
   const [orgSlug, setOrgSlug] = useState('')
   const [authToken, setAuthToken] = useState('')
-  // Step 2
   const [projects, setProjects] = useState<SentryProject[] | null>(null)
   const [selectedSlug, setSelectedSlug] = useState('')
   const [fetching, setFetching] = useState(false)
   const [saving, setSaving] = useState(false)
+  const { t } = useT()
 
   useEffect(() => {
     fetch('/api/settings/sentry').then((r) => r.json()).then(setConfigs)
@@ -96,7 +97,7 @@ function SentrySettings() {
       setProjects(data)
       if (data.length > 0) setSelectedSlug(data[0].slug)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to fetch projects')
+      toast.error(err instanceof Error ? err.message : t('settings_sentry_fetch_error'))
     } finally { setFetching(false) }
   }
 
@@ -104,7 +105,6 @@ function SentrySettings() {
     if (!selectedSlug) return
     setSaving(true)
     try {
-      // Fetch DSN automatically
       const dsnRes = await fetch(`/api/settings/sentry/dsn?orgSlug=${encodeURIComponent(orgSlug)}&projectSlug=${encodeURIComponent(selectedSlug)}&authToken=${encodeURIComponent(authToken)}`)
       const { dsn } = dsnRes.ok ? await dsnRes.json() : { dsn: '' }
 
@@ -117,16 +117,16 @@ function SentrySettings() {
       const config = await res.json()
       setConfigs((c) => [...c, config])
       resetForm()
-      toast.success('Sentry config added')
-    } catch { toast.error('Failed to add config') } finally { setSaving(false) }
+      toast.success(t('settings_sentry_success'))
+    } catch { toast.error(t('settings_sentry_error')) } finally { setSaving(false) }
   }
 
   async function handleDelete(id: string) {
     try {
       await fetch(`/api/settings/sentry/${id}`, { method: 'DELETE' })
       setConfigs((c) => c.filter((s) => s.id !== id))
-      toast.success('Deleted')
-    } catch { toast.error('Failed') }
+      toast.success(t('settings_sentry_delete_success'))
+    } catch { toast.error(t('settings_sentry_delete_error')) }
   }
 
   return (
@@ -134,41 +134,39 @@ function SentrySettings() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Sentry Configs</CardTitle>
-            <CardDescription>Monitor errors across projects</CardDescription>
+            <CardTitle>{t('settings_sentry_title')}</CardTitle>
+            <CardDescription>{t('settings_sentry_desc')}</CardDescription>
           </div>
-          <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}><Plus size={14} />Add</Button>
+          <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}><Plus size={14} />{t('settings_sentry_add')}</Button>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {showForm && (
           <div className="flex flex-col gap-3 rounded-lg border p-4">
             {projects === null ? (
-              // Step 1: credentials
               <form onSubmit={fetchProjects} className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="s-name">Config name (optional)</Label>
+                  <Label htmlFor="s-name">{t('settings_sentry_name_label')}</Label>
                   <Input id="s-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Sentry" />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="s-org">Organization slug</Label>
+                  <Label htmlFor="s-org">{t('settings_sentry_org_label')}</Label>
                   <Input id="s-org" value={orgSlug} onChange={(e) => setOrgSlug(e.target.value)} placeholder="my-org" required />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="s-token">Auth token</Label>
+                  <Label htmlFor="s-token">{t('settings_sentry_token_label')}</Label>
                   <Input id="s-token" value={authToken} onChange={(e) => setAuthToken(e.target.value)} type="password" placeholder="sntrys_..." required />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="submit" size="sm" disabled={fetching}>{fetching ? 'Fetching...' : 'Fetch Projects'}</Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={resetForm}>Cancel</Button>
+                  <Button type="submit" size="sm" disabled={fetching}>{fetching ? t('settings_sentry_fetching') : t('settings_sentry_fetch')}</Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={resetForm}>{t('settings_sentry_cancel')}</Button>
                 </div>
               </form>
             ) : (
-              // Step 2: pick project
               <div className="flex flex-col gap-3">
-                <p className="text-sm text-muted-foreground">Found {projects.length} project{projects.length !== 1 ? 's' : ''} in <span className="font-medium text-foreground">{orgSlug}</span></p>
+                <p className="text-sm text-muted-foreground">{t('settings_sentry_found')(projects.length, orgSlug)}</p>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="s-project">Select project</Label>
+                  <Label htmlFor="s-project">{t('settings_sentry_select_label')}</Label>
                   <select
                     id="s-project"
                     value={selectedSlug}
@@ -181,9 +179,9 @@ function SentrySettings() {
                   </select>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleSave} disabled={saving || !selectedSlug}>{saving ? 'Saving...' : 'Add Config'}</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setProjects(null)}>← Back</Button>
-                  <Button size="sm" variant="ghost" onClick={resetForm}>Cancel</Button>
+                  <Button size="sm" onClick={handleSave} disabled={saving || !selectedSlug}>{saving ? t('settings_sentry_saving') : t('settings_sentry_save')}</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setProjects(null)}>{t('settings_sentry_back')}</Button>
+                  <Button size="sm" variant="ghost" onClick={resetForm}>{t('settings_sentry_cancel')}</Button>
                 </div>
               </div>
             )}
@@ -200,7 +198,7 @@ function SentrySettings() {
             </Button>
           </div>
         ))}
-        {configs.length === 0 && !showForm && <p className="text-sm text-muted-foreground">No Sentry configs yet.</p>}
+        {configs.length === 0 && !showForm && <p className="text-sm text-muted-foreground">{t('settings_sentry_empty')}</p>}
       </CardContent>
     </Card>
   )
@@ -214,6 +212,7 @@ function ApiTokenSettings() {
   const [name, setName] = useState('')
   const [newToken, setNewToken] = useState<string | null>(null)
   const [showToken, setShowToken] = useState(false)
+  const { t } = useT()
 
   useEffect(() => {
     fetch('/api/auth/token').then((r) => r.json()).then((data) => setTokens(Array.isArray(data) ? data : []))
@@ -233,26 +232,26 @@ function ApiTokenSettings() {
       setNewToken(token)
       setName('')
       fetch('/api/auth/token').then((r) => r.json()).then((data) => setTokens(Array.isArray(data) ? data : []))
-    } catch { toast.error('Failed to create token') }
+    } catch { toast.error(t('settings_token_error')) }
   }
 
   async function handleRevoke(id: string) {
     try {
       await fetch(`/api/auth/token/${id}`, { method: 'DELETE' })
-      setTokens((t) => t.filter((tok) => tok.id !== id))
-    } catch { toast.error('Failed') }
+      setTokens((tk) => tk.filter((tok) => tok.id !== id))
+    } catch { toast.error(t('settings_token_revoke_error')) }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>API Tokens</CardTitle>
-        <CardDescription>For CLI and skill access. Tokens are shown only once.</CardDescription>
+        <CardTitle>{t('settings_token_title')}</CardTitle>
+        <CardDescription>{t('settings_token_desc')}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {newToken && (
           <div className="rounded-lg border border-green-500 bg-green-50 p-3">
-            <p className="text-sm font-medium text-green-800 mb-2">New token (copy it now — it will not be shown again):</p>
+            <p className="text-sm font-medium text-green-800 mb-2">{t('settings_token_new_label')}</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 rounded bg-white p-2 text-xs font-mono break-all">
                 {showToken ? newToken : '•'.repeat(Math.min(newToken.length, 40))}
@@ -260,36 +259,37 @@ function ApiTokenSettings() {
               <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => setShowToken(!showToken)}>
                 {showToken ? <EyeOff size={14} /> : <Eye size={14} />}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(newToken); toast.success('Copied') }}>Copy</Button>
+              <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(newToken); toast.success(t('settings_token_copied')) }}>{t('settings_token_copy')}</Button>
             </div>
           </div>
         )}
         <form onSubmit={handleCreate} className="flex gap-2">
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Token name" className="flex-1" />
-          <Button type="submit" size="sm">Generate</Button>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('settings_token_ph')} className="flex-1" />
+          <Button type="submit" size="sm">{t('settings_token_generate')}</Button>
         </form>
-        {tokens.map((t) => (
-          <div key={t.id} className="flex items-center justify-between rounded-lg border p-3">
+        {tokens.map((tk) => (
+          <div key={tk.id} className="flex items-center justify-between rounded-lg border p-3">
             <div>
-              <p className="font-medium text-sm">{t.name}</p>
-              <p className="text-xs text-muted-foreground">{new Date(t.createdAt).toLocaleDateString()}</p>
+              <p className="font-medium text-sm">{tk.name}</p>
+              <p className="text-xs text-muted-foreground">{new Date(tk.createdAt).toLocaleDateString()}</p>
             </div>
-            <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => handleRevoke(t.id)}>
+            <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => handleRevoke(tk.id)}>
               <Trash2 size={14} />
             </Button>
           </div>
         ))}
-        {tokens.length === 0 && <p className="text-sm text-muted-foreground">No tokens yet.</p>}
+        {tokens.length === 0 && <p className="text-sm text-muted-foreground">{t('settings_token_empty')}</p>}
       </CardContent>
     </Card>
   )
 }
 
 export default function SettingsPage() {
+  const { t } = useT()
   return (
     <AppShell>
       <div className="p-6 max-w-2xl flex flex-col gap-6">
-        <h1 className="text-2xl font-bold">Settings</h1>
+        <h1 className="text-2xl font-bold">{t('settings_title')}</h1>
         <QiniuSettings />
         <SentrySettings />
         <ApiTokenSettings />

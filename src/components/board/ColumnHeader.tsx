@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { useT } from '@/lib/i18n'
 
 interface Props {
   column: { id: string; name: string; boardId: string }
@@ -23,6 +24,7 @@ interface Props {
 export default function ColumnHeader({ column, taskCount, onAddTask, onDeleted, onRenamed }: Props) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(column.name)
+  const { t } = useT()
 
   async function handleRename() {
     if (name === column.name || !name.trim()) { setEditing(false); return }
@@ -36,7 +38,7 @@ export default function ColumnHeader({ column, taskCount, onAddTask, onDeleted, 
       onRenamed(column.id, name)
       setEditing(false)
     } catch {
-      toast.error('Failed to rename column')
+      toast.error(t('column_rename_error'))
       setName(column.name)
       setEditing(false)
     }
@@ -48,7 +50,7 @@ export default function ColumnHeader({ column, taskCount, onAddTask, onDeleted, 
       if (!res.ok) throw new Error('Failed')
       onDeleted(column.id)
     } catch {
-      toast.error('Failed to delete column')
+      toast.error(t('column_delete_error'))
     }
   }
 
@@ -80,8 +82,8 @@ export default function ColumnHeader({ column, taskCount, onAddTask, onDeleted, 
             <MoreHorizontal size={14} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setEditing(true)}>Rename</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive" onClick={handleDelete}>Delete Column</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEditing(true)}>{t('column_rename')}</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onClick={handleDelete}>{t('column_delete')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

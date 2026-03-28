@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { Plus } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 interface Props {
   orgId: string
@@ -19,6 +20,7 @@ export default function CreateBoardDialog({ orgId, onCreated }: Props) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useT()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -36,9 +38,9 @@ export default function CreateBoardDialog({ orgId, onCreated }: Props) {
       setOpen(false)
       setName('')
       setDescription('')
-      toast.success('Board created')
+      toast.success(t('create_board_success'))
     } catch {
-      toast.error('Failed to create board')
+      toast.error(t('create_board_error'))
     } finally {
       setLoading(false)
     }
@@ -48,24 +50,24 @@ export default function CreateBoardDialog({ orgId, onCreated }: Props) {
     <>
       <Button onClick={() => setOpen(true)}>
         <Plus size={16} />
-        New Board
+        {t('boards_new')}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Board</DialogTitle>
+            <DialogTitle>{t('create_board_title')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Project" required />
+              <Label htmlFor="name">{t('create_board_name')}</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('create_board_name_ph')} required />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="description">Description (optional)</Label>
-              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this board for?" />
+              <Label htmlFor="description">{t('create_board_desc')}</Label>
+              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('create_board_desc_ph')} />
             </div>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Board'}
+              {loading ? t('create_board_creating') : t('create_board_submit')}
             </Button>
           </form>
         </DialogContent>

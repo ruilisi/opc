@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import AppShell from '@/components/shared/AppShell'
 import InviteLinkCard from '@/components/org/InviteLinkCard'
 import { Button } from '@/components/ui/button'
@@ -9,8 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { UserX } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 interface Member {
   id: string
@@ -29,6 +30,7 @@ interface Org {
 export default function OrgSettingsPage() {
   const { orgId } = useParams<{ orgId: string }>()
   const router = useRouter()
+  const { t } = useT()
   const [org, setOrg] = useState<Org | null>(null)
   const [loading, setLoading] = useState(true)
   const [myRole, setMyRole] = useState<string>('member')
@@ -61,9 +63,9 @@ export default function OrgSettingsPage() {
       if (!res.ok) throw new Error('Failed to rename')
       const updated = await res.json()
       setOrg((prev) => prev ? { ...prev, name: updated.name } : prev)
-      toast.success('Organization renamed')
+      toast.success(t('org_rename_success'))
     } catch {
-      toast.error('Failed to rename organization')
+      toast.error(t('org_rename_error'))
     } finally {
       setRenaming(false)
     }
@@ -75,13 +77,13 @@ export default function OrgSettingsPage() {
       const res = await fetch(`/api/orgs/${orgId}`, { method: 'DELETE' })
       if (!res.ok) {
         const err = await res.json()
-        toast.error(err.error ?? 'Failed to delete organization')
+        toast.error(err.error ?? t('org_delete_error'))
         return
       }
-      toast.success('Organization deleted')
+      toast.success(t('org_delete_success'))
       router.push('/')
     } catch {
-      toast.error('Failed to delete organization')
+      toast.error(t('org_delete_error'))
     } finally {
       setDeleting(false)
     }
@@ -91,13 +93,13 @@ export default function OrgSettingsPage() {
     const res = await fetch(`/api/orgs/${orgId}/members/${userId}`, { method: 'DELETE' })
     if (!res.ok) {
       const err = await res.json()
-      toast.error(err.error ?? 'Failed to remove member')
+      toast.error(err.error ?? t('org_remove_member_error'))
       return
     }
     setOrg((prev) =>
       prev ? { ...prev, members: prev.members.filter((m) => m.user.id !== userId) } : prev
     )
-    toast.success('Member removed')
+    toast.success(t('org_remove_member_success'))
   }
 
   if (loading) {
@@ -114,7 +116,7 @@ export default function OrgSettingsPage() {
   if (!org) {
     return (
       <AppShell>
-        <div className="p-6 text-muted-foreground">Organization not found.</div>
+        <div className="p-6 text-muted-foreground">{t('org_not_found')}</div>
       </AppShell>
     )
   }
@@ -128,9 +130,9 @@ export default function OrgSettingsPage() {
 
         {myRole === 'owner' && (
           <div className="flex flex-col gap-3 rounded-lg border p-4">
-            <h2 className="text-sm font-semibold">Rename</h2>
+            <h2 className="text-sm font-semibold">{t('org_rename_section')}</h2>
             <form onSubmit={handleRename} className="flex gap-2">
-              <Label htmlFor="org-name" className="sr-only">Name</Label>
+              <Label htmlFor="org-name" className="sr-only">{t('org_rename_section')}</Label>
               <Input
                 id="org-name"
                 value={newName}
@@ -138,7 +140,7 @@ export default function OrgSettingsPage() {
                 className="max-w-xs"
               />
               <Button type="submit" variant="outline" size="sm" disabled={renaming || !newName.trim() || newName.trim() === org.name}>
-                {renaming ? 'Saving...' : 'Save'}
+                {renaming ? t('org_saving') : t('org_save')}
               </Button>
             </form>
           </div>
@@ -146,20 +148,20 @@ export default function OrgSettingsPage() {
 
         {myRole === 'owner' && !isPersonal && (
           <div className="flex flex-col gap-3 rounded-lg border border-destructive/40 p-4">
-            <h2 className="text-sm font-semibold text-destructive">Danger Zone</h2>
+            <h2 className="text-sm font-semibold text-destructive">{t('org_danger_zone')}</h2>
             {confirmDelete ? (
               <div className="flex items-center gap-3">
-                <span className="text-sm">Delete this organization and all its boards? This cannot be undone.</span>
+                <span className="text-sm">{t('org_delete_confirm')}</span>
                 <Button size="sm" variant="destructive" onClick={handleDelete} disabled={deleting}>
-                  {deleting ? 'Deleting...' : 'Yes, delete'}
+                  {deleting ? t('org_deleting') : t('org_delete_yes')}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setConfirmDelete(false)} disabled={deleting}>
-                  Cancel
+                  {t('org_cancel')}
                 </Button>
               </div>
             ) : (
               <Button size="sm" variant="destructive" className="w-fit" onClick={() => setConfirmDelete(true)}>
-                Delete Organization
+                {t('org_delete_btn')}
               </Button>
             )}
           </div>
@@ -171,7 +173,7 @@ export default function OrgSettingsPage() {
 
             <div className="flex flex-col gap-3">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Members ({org.members.length})
+                {t('org_members_section')} ({org.members.length})
               </h2>
               {org.members.map((m) => (
                 <div key={m.id} className="flex items-center justify-between rounded-lg border p-3">

@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner'
 import { useWorkspace, type WorkspaceOrg } from '@/contexts/WorkspaceContext'
 import CreateOrgDialog from '@/components/org/CreateOrgDialog'
+import { useT } from '@/lib/i18n'
 
 function OrgAvatar({ name }: { name: string }) {
   const initials = name
@@ -29,6 +30,7 @@ function OrgAvatar({ name }: { name: string }) {
 
 export default function WorkspaceSwitcher() {
   const { orgs, activeOrg, setActiveOrg, addOrg } = useWorkspace()
+  const { t } = useT()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [createOrgOpen, setCreateOrgOpen] = useState(false)
@@ -54,7 +56,7 @@ export default function WorkspaceSwitcher() {
           <div className="flex w-full items-center gap-2">
             {activeOrg ? <OrgAvatar name={activeOrg.name} /> : <div className="size-7 rounded-md bg-muted" />}
             <span className="flex-1 truncate text-left font-medium">
-              {activeOrg?.name ?? 'Loading...'}
+              {activeOrg?.name ?? t('ws_loading')}
             </span>
             <ChevronDown size={14} className="shrink-0 text-muted-foreground" />
           </div>
@@ -63,7 +65,7 @@ export default function WorkspaceSwitcher() {
           {personalOrgs.map((org) => (
             <DropdownMenuItem key={org.id} onClick={() => handleSelectOrg(org)} className="gap-2">
               <OrgAvatar name={org.name} />
-              <span className="flex-1 truncate">Personal</span>
+              <span className="flex-1 truncate">{t('ws_personal')}</span>
               {activeOrg?.id === org.id && <Check size={14} />}
             </DropdownMenuItem>
           ))}
@@ -77,16 +79,16 @@ export default function WorkspaceSwitcher() {
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => { setOpen(false); setCreateOrgOpen(true) }} className="gap-2">
             <Plus size={14} />
-            Create Organization
+            {t('ws_create_org')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => { setOpen(false); router.push('/profile') }} className="gap-2">
             <User size={14} />
-            Edit Profile
+            {t('ws_edit_profile')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout} className="gap-2 text-destructive focus:text-destructive">
             <LogOut size={14} />
-            Logout
+            {t('ws_logout')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

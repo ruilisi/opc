@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Trash2 } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 interface Props {
   board: { id: string; name: string }
@@ -17,6 +18,7 @@ export default function DeleteBoardDialog({ board, onDeleted }: Props) {
   const [open, setOpen] = useState(false)
   const [confirmation, setConfirmation] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useT()
 
   async function handleDelete() {
     if (confirmation !== board.name) return
@@ -24,11 +26,11 @@ export default function DeleteBoardDialog({ board, onDeleted }: Props) {
     try {
       const res = await fetch(`/api/boards/${board.id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed')
-      toast.success('Board deleted')
+      toast.success(t('delete_board_success'))
       setOpen(false)
       onDeleted()
     } catch {
-      toast.error('Failed to delete board')
+      toast.error(t('delete_board_error'))
     } finally {
       setLoading(false)
     }
@@ -39,23 +41,22 @@ export default function DeleteBoardDialog({ board, onDeleted }: Props) {
       <button
         onClick={(e) => { e.preventDefault(); setOpen(true) }}
         className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
-        aria-label="Delete board"
+        aria-label={t('delete_board_title')}
       >
         <Trash2 size={14} />
       </button>
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); setConfirmation('') }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete board</DialogTitle>
+            <DialogTitle>{t('delete_board_title')}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4">
             <p className="text-sm text-muted-foreground">
-              This action is <span className="font-semibold text-foreground">permanent</span> and cannot be undone.
-              All columns and tasks inside will be deleted.
+              {t('delete_board_warning')}
             </p>
             <div className="flex flex-col gap-2">
               <Label htmlFor="confirm-name">
-                Type <span className="font-mono font-semibold text-foreground">{board.name}</span> to confirm
+                {t('delete_board_confirm_prefix')} <span className="font-mono font-semibold text-foreground">{board.name}</span> {t('delete_board_confirm_suffix')}
               </Label>
               <Input
                 id="confirm-name"
@@ -70,7 +71,7 @@ export default function DeleteBoardDialog({ board, onDeleted }: Props) {
               disabled={confirmation !== board.name || loading}
               onClick={handleDelete}
             >
-              {loading ? 'Deleting...' : 'Delete this board'}
+              {loading ? t('delete_board_deleting') : t('delete_board_submit')}
             </Button>
           </div>
         </DialogContent>

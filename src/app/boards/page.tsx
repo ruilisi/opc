@@ -6,6 +6,7 @@ import BoardCard from '@/components/board/BoardCard'
 import CreateBoardDialog from '@/components/board/CreateBoardDialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
+import { useT } from '@/lib/i18n'
 
 interface BoardMember {
   user: { id: string; name: string; avatarUrl?: string | null }
@@ -23,6 +24,7 @@ interface Board {
 
 function BoardsContent() {
   const { activeOrg, loading: workspaceLoading } = useWorkspace()
+  const { t } = useT()
   const [boards, setBoards] = useState<Board[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -40,7 +42,7 @@ function BoardsContent() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Boards</h1>
+        <h1 className="text-2xl font-bold">{t('boards_title')}</h1>
         {activeOrg && (
           <CreateBoardDialog
             orgId={activeOrg.id}
@@ -57,8 +59,8 @@ function BoardsContent() {
         </div>
       ) : boards.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-          <p className="text-lg">No boards yet</p>
-          <p className="text-sm">Create your first board to get started.</p>
+          <p className="text-lg">{t('boards_empty_title')}</p>
+          <p className="text-sm">{t('boards_empty_desc')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

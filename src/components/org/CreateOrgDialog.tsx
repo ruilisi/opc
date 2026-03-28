@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Plus, Check, X, Loader } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 interface OrgResult {
   id: string
@@ -16,7 +17,6 @@ interface OrgResult {
 
 interface Props {
   onCreated: (org: OrgResult) => void
-  // Controlled mode
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
@@ -37,13 +37,12 @@ export default function CreateOrgDialog({ onCreated, open: openProp, onOpenChang
   const [slugState, setSlugState] = useState<SlugState>('idle')
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { t } = useT()
 
-  // Auto-derive slug from name unless user edited it manually
   useEffect(() => {
     if (!slugEdited) setSlug(toSlug(name))
   }, [name, slugEdited])
 
-  // Debounced availability check
   useEffect(() => {
     if (!slug) { setSlugState('idle'); return }
     setSlugState('checking')
@@ -74,7 +73,7 @@ export default function CreateOrgDialog({ onCreated, open: openProp, onOpenChang
       if (!res.ok) {
         if (data.error === 'slug_taken') {
           setSlugState('taken')
-          toast.error('That URL is already taken — try another')
+          toast.error(t('create_org_slug_taken_toast'))
           return
         }
         throw new Error(data.error ?? 'Failed')
@@ -82,9 +81,9 @@ export default function CreateOrgDialog({ onCreated, open: openProp, onOpenChang
       onCreated(data)
       setOpen(false)
       reset()
-      toast.success('Organization created')
+      toast.success(t('create_org_success'))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create organization')
+      toast.error(err instanceof Error ? err.message : t('create_org_error'))
     } finally {
       setLoading(false)
     }
@@ -102,33 +101,33 @@ export default function CreateOrgDialog({ onCreated, open: openProp, onOpenChang
       {openProp === undefined && (
         <Button onClick={() => setOpen(true)}>
           <Plus size={16} />
-          New Organization
+          {t('create_org_btn')}
         </Button>
       )}
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset() }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Organization</DialogTitle>
+            <DialogTitle>{t('create_org_title')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="org-name">Organization name</Label>
+              <Label htmlFor="org-name">{t('create_org_name_label')}</Label>
               <Input
                 id="org-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Acme Corp"
+                placeholder={t('create_org_name_ph')}
                 required
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="org-slug">URL identifier</Label>
+              <Label htmlFor="org-slug">{t('create_org_slug_label')}</Label>
               <div className="relative">
                 <Input
                   id="org-slug"
                   value={slug}
                   onChange={(e) => { setSlug(toSlug(e.target.value)); setSlugEdited(true) }}
-                  placeholder="acme-corp"
+                  placeholder={t('create_org_slug_ph')}
                   className={`pr-8 ${slugState === 'taken' ? 'border-destructive focus-visible:ring-destructive' : slugState === 'available' ? 'border-green-500 focus-visible:ring-green-500' : ''}`}
                   required
                 />
@@ -138,17 +137,17 @@ export default function CreateOrgDialog({ onCreated, open: openProp, onOpenChang
               </div>
               <p className="text-xs text-muted-foreground">
                 {slugState === 'taken'
-                  ? 'This identifier is already taken. Please choose another.'
+                  ? t('create_org_slug_taken')
                   : slugState === 'available'
-                  ? 'This identifier is available.'
-                  : "Used in URLs and can't be changed later."}
+                  ? t('create_org_slug_available')
+                  : t('create_org_slug_hint')}
               </p>
             </div>
             <Button
               type="submit"
               disabled={loading || !name.trim() || !slug || slugState === 'taken' || slugState === 'checking'}
             >
-              {loading ? 'Creating...' : 'Create Organization'}
+              {loading ? t('create_org_creating') : t('create_org_submit')}
             </Button>
           </form>
         </DialogContent>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import UserAvatar from '@/components/shared/UserAvatar'
 import DeleteBoardDialog from './DeleteBoardDialog'
+import { useT } from '@/lib/i18n'
 
 interface BoardMember {
   role?: string
@@ -20,6 +21,7 @@ interface Board {
 
 export default function BoardCard({ board, onDeleted }: { board: Board; onDeleted?: () => void }) {
   const isOwner = board.members.some((m) => m.role === 'owner')
+  const { dict } = useT()
 
   return (
     <div className="group relative">
@@ -34,7 +36,11 @@ export default function BoardCard({ board, onDeleted }: { board: Board; onDelete
             )}
             <div className="flex items-center justify-between">
               {board._count && (
-                <Badge variant="secondary">{board._count.columns} columns</Badge>
+                <Badge variant="secondary">
+                  {board._count.columns === 1
+                    ? dict.boards_columns_one
+                    : dict.boards_columns_other(board._count.columns)}
+                </Badge>
               )}
               <div className="flex -space-x-2">
                 {board.members.slice(0, 5).map(({ user }) => (

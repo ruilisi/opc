@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { KeyRound, FolderOpen, Check, X } from 'lucide-react'
 import BoardTokensDialog from './BoardTokensDialog'
 import { toast } from 'sonner'
+import { useT } from '@/lib/i18n'
 
 interface Props {
   boardId: string
@@ -20,6 +21,7 @@ export default function BoardHeader({ boardId, name, description, isOwner, baseP
   const [editingPath, setEditingPath] = useState(false)
   const [basePath, setBasePath] = useState(initialBasePath ?? '')
   const [savedPath, setSavedPath] = useState(initialBasePath ?? '')
+  const { t } = useT()
 
   async function savePath() {
     try {
@@ -32,7 +34,7 @@ export default function BoardHeader({ boardId, name, description, isOwner, baseP
       setSavedPath(basePath.trim())
       setEditingPath(false)
     } catch {
-      toast.error('Failed to save base folder')
+      toast.error(t('board_base_folder_error'))
     }
   }
 
@@ -79,7 +81,7 @@ export default function BoardHeader({ boardId, name, description, isOwner, baseP
                   {savedPath ? (
                     <span className="max-w-48 truncate text-xs font-mono">{savedPath}</span>
                   ) : (
-                    'Base Folder'
+                    t('board_base_folder')
                   )}
                 </Button>
               )}
@@ -90,7 +92,7 @@ export default function BoardHeader({ boardId, name, description, isOwner, baseP
                 onClick={() => setTokensOpen(true)}
               >
                 <KeyRound size={14} />
-                Agent Tokens
+                {t('board_agent_tokens')}
               </Button>
             </>
           )}

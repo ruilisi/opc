@@ -2,14 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Settings, Bug, Building2, Sun, Moon, Monitor } from 'lucide-react'
+import { LayoutDashboard, Settings, Bug, Building2, Sun, Moon, Monitor, Languages } from 'lucide-react'
 import { WorkspaceProvider, useWorkspace } from '@/contexts/WorkspaceContext'
 import WorkspaceSwitcher from '@/components/shared/WorkspaceSwitcher'
 import { useTheme } from 'next-themes'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useT, useI18n } from '@/lib/i18n'
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const { t } = useT()
   const icon = theme === 'dark' ? <Moon size={15} /> : theme === 'light' ? <Sun size={15} /> : <Monitor size={15} />
   return (
     <DropdownMenu>
@@ -17,9 +19,25 @@ function ThemeToggle() {
         {icon}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="top">
-        <DropdownMenuItem onClick={() => setTheme('light')}><Sun size={14} className="mr-2" />Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}><Moon size={14} className="mr-2" />Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}><Monitor size={14} className="mr-2" />Match system</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('light')}><Sun size={14} className="mr-2" />{t('theme_light')}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}><Moon size={14} className="mr-2" />{t('theme_dark')}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}><Monitor size={14} className="mr-2" />{t('theme_system')}</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+function LangToggle() {
+  const { lang, setLang } = useI18n()
+  const { t } = useT()
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+        <Languages size={15} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" side="top">
+        <DropdownMenuItem onClick={() => setLang('en')} className={lang === 'en' ? 'font-medium' : ''}>{t('lang_en')}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setLang('zh')} className={lang === 'zh' ? 'font-medium' : ''}>{t('lang_zh')}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -28,22 +46,23 @@ function ThemeToggle() {
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { activeOrg, loading } = useWorkspace()
+  const { t } = useT()
 
   const navItems = [
-    { href: '/boards', icon: LayoutDashboard, label: 'Boards', show: true },
+    { href: '/boards', icon: LayoutDashboard, label: t('nav_boards'), show: true },
     {
       href: activeOrg ? `/orgs/${activeOrg.id}/sentry` : '#',
       icon: Bug,
-      label: 'Sentry',
+      label: t('nav_sentry'),
       show: !loading && !!activeOrg,
     },
     {
       href: activeOrg ? `/orgs/${activeOrg.id}` : '#',
       icon: Building2,
-      label: 'Org Settings',
+      label: t('nav_org_settings'),
       show: !loading && activeOrg?.type === 'enterprise',
     },
-    { href: '/settings', icon: Settings, label: 'Settings', show: true },
+    { href: '/settings', icon: Settings, label: t('nav_settings'), show: true },
   ]
 
   return (
@@ -71,6 +90,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           <div className="flex-1 min-w-0">
             <WorkspaceSwitcher />
           </div>
+          <LangToggle />
           <ThemeToggle />
         </div>
       </aside>
