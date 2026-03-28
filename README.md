@@ -194,6 +194,12 @@ bun run dev
 
 ---
 
+## Sponsors
+
+- <a href="https://game.lingti.com"><img src="https://files.lingti.com/images/lingti-logo-圆形不带字.png" height="24" style="vertical-align:middle;display:inline-block;" /></a> **[灵缇AI加速](https://game.lingti.com)** - PC/Mac/iOS/Android 全平台游戏加速、热点加速、AI 及学术资源定向加速
+
+---
+
 ## 结语
 
 这个工具不是为了让你工作更多，而是为了让你能更有尊严、更从容地去创造价值。
