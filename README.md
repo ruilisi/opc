@@ -3,62 +3,42 @@
 > **”一个人，也可以是一支军队。”**
 > 这是一款为独立创业者、自由职业者及 1–10 人精干团队量身打造的极简项目管理系统。它不只是为了管理任务，更是为了守护你最宝贵的资源：**注意力与时间**。
 
-## 视频介绍
+## 项目介绍
 
-你每天要打开几个 SaaS 软件？Jira、Notion、Slack、Figma、Sentry……每一个都要单独登录、单独跳转，90% 的功能你根本用不到，但那 90% 的冗余却在时刻分散你的注意力。
+你每天要打开几个 SaaS 软件？Jira、Notion、Slack、Figma、Sentry……每一个都要单独登录、单独跳转，90% 的功能你根本用不到，但那 90% 的冗余却在时刻分散你的注意力。SaaS 厂商不会为你精简，他们要卖的是功能的堆砌。
 
-OPC 解决两个核心问题：
+**OPC** 专为独立开发者、自由职业者和 1-10 人精干团队打造，解决两个核心问题：
 
 **① 把几十个 SaaS 聚合成一张菜单**
-好的 SaaS 都有 API，我们不需要等厂商帮你做精简，直接把你真正需要的那部分 API 聚合进来，一个平台搞定，按需取用。AI Vibe Programming 让这件事的工程量大幅降低。
+好的 SaaS 工具都提供完整的 API。过去，要基于 API 做深度整合，需要大量工程投入。但今天，AI Vibe Programming 让这件事的门槛大幅降低——我们可以快速把你真正需要的那 10% 功能提炼出来，以最简洁的界面呈现，按需取用，像点菜一样自然。
 
 **② 用 AI 驱动你的数据和管理流程**
-看板任务直接变成 AI Agent 的 prompt，Agent 自动领取任务、写代码、生成 plan、push 到 GitHub —— 全程无需人工介入。视频中演示了 Claude Sonnet 4.6 从 OPC 看板拿任务、实现 Sentry 一键删除报错功能、再到 ACP（add / commit / push）的完整闭环。
+项目管理不应止步于”记录任务”。看板任务直接变成 AI Agent 的 prompt，Agent 自动领取任务、写代码、生成 plan、push 到 GitHub —— 全程无需人工介入。人负责战略与创意，AI 负责执行与运营。
 
-**视频亮点：**
-- 🤖 AI Agent 自动消费看板任务全流程演示
-- 🐛 Sentry 报错直接在 OPC 内删除（无需跳转）
-- ⚡ ACP 一键提交，commit message 比人写得还详细
-- 📋 截图粘贴直传七牛 CDN
+**功能亮点：**
+- 🤖 AI Agent 自动消费看板任务，原生支持 `claude` / `gpt` / `gemini` 标签
+- 🐛 Sentry 报错直接在 OPC 内查看并删除，无需跳转
+- ⚡ ACP 一键提交，commit message 由 AI 生成，比手写更详细
+- 📋 截图粘贴直传七牛 CDN，文件管理零负担
+- 🔗 内置七牛云、自持 OAuth，扎根国内生态，开箱即用
 
----
-
----
-
-## 我们在解决两个真实的痛点
-
-### 痛点一：SaaS 软件太多，注意力被切割殆尽
-
-一个现代团队每天要面对多少 SaaS 工具？财务管理、项目管理、文档协作、知识库、文件存储……每一款都要单独登录、单独跳转、单独上手。更糟的是，这些工具 90% 以上的功能和界面你根本用不到，但那 90% 的冗余却时刻在分散你的注意力。
-
-SaaS 厂商不会为你精简，他们要卖的是功能的堆砌。
-
-**OPC 的答案是：把 SaaS 软件聚合成一张菜单。**
-
-好的 SaaS 工具都提供完整的 API。过去，要基于 API 做深度整合，需要大量工程投入。但今天，AI 辅助编程让这件事的门槛大幅降低——我们可以快速把你真正需要的那 10% 功能提炼出来，以最简洁的界面呈现，按需取用，像点菜一样自然。
+开源：**[github.com/ruilisi/opc](https://github.com/ruilisi/opc)**，欢迎 Star / Fork / PR。
+体验：**[opc.ruilisi.com](https://opc.ruilisi.com)**
 
 ---
 
-### 痛点二：管理本身应该由 AI 来驱动
+## 演示视频
 
-项目管理不应止步于”记录任务”。OPC 的愿景是让 AI 真正介入管理全流程：
+[![OPC Demo](https://files.lingti.com/images/opc-saas.png)](https://www.bilibili.com/video/BV1ANX1BwEdP/)
 
-- AI 审计财务数据，发现异常与趋势
-- AI 从看板中自动选取任务，制定执行计划
-- AI Agent 领取任务、执行、记录结果、标记完成——循环往复
-
-**人负责战略与创意，AI 负责执行与运营。** 这才是 OPC 的精髓所在。
+- 📺 Bilibili：[www.bilibili.com/video/BV1ANX1BwEdP](https://www.bilibili.com/video/BV1ANX1BwEdP/)
+- 🎬 YouTube：[www.youtube.com/watch?v=5lKisD51_gA](https://www.youtube.com/watch?v=5lKisD51_gA)
 
 ---
 
-## 我们的哲学：效率背后的简洁
+## 感谢金主爸爸
 
-市面上的工具要么太沉重（如 Jira），让你迷失在配置里；要么太疏离，不支持国内的基础设施。OPC 遵循以下原则：
-
-- **保护注意力**：工具应该是无感的，不该为了”管理”而浪费你的”精力”。
-- **人机无缝分工**：原生支持 AI 模型标记（`claude` / `gpt` / `gemini`），任务分发给 AI 是一条命令的事。
-- **扎根国内生态**：内置七牛云、自持 OAuth、适配国内网络，无需折腾，开箱即用。
-- **极简即是自由**：基于 Next.js + Prisma，极低的部署和维护成本，一台入门级云服务器即可承载你的梦想。
+- <a href="https://game.lingti.com"><img src="https://files.lingti.com/images/lingti-logo-圆形不带字.png" height="24" style="vertical-align:middle;display:inline-block;" /></a> **[灵缇AI加速](https://game.lingti.com)** - PC/Mac/iOS/Android 全平台游戏加速、全球首创热点加速、AI 及学术资源定向加速
 
 ---
 
@@ -236,12 +216,6 @@ bun run dev
 ```
 
 技术栈：Next.js 16 · TypeScript · Tailwind v4 · Prisma 7 · PostgreSQL · shadcn/ui
-
----
-
-## Sponsors
-
-- <a href="https://game.lingti.com"><img src="https://files.lingti.com/images/lingti-logo-圆形不带字.png" height="24" style="vertical-align:middle;display:inline-block;" /></a> **[灵缇AI加速](https://game.lingti.com)** - PC/Mac/iOS/Android 全平台游戏加速、热点加速、AI 及学术资源定向加速
 
 ---
 
