@@ -104,6 +104,11 @@ const translations = {
     board_agent_tokens: 'Agent Tokens',
     board_base_folder_error: 'Failed to save base folder',
     // Org settings page
+    org_general_section: 'General',
+    org_name_label: 'Organization Name',
+    org_slug_label: 'URL Identifier',
+    org_slug_taken: 'This identifier is already taken.',
+    org_slug_available: 'Available.',
     org_rename_section: 'Rename',
     org_save: 'Save',
     org_saving: 'Saving...',
@@ -265,6 +270,11 @@ const translations = {
     board_agent_tokens: 'Agent 令牌',
     board_base_folder_error: '保存基础目录失败',
     // Org settings page
+    org_general_section: '基本信息',
+    org_name_label: '组织名称',
+    org_slug_label: 'URL 标识符',
+    org_slug_taken: '该标识符已被占用。',
+    org_slug_available: '可用。',
     org_rename_section: '重命名',
     org_save: '保存',
     org_saving: '保存中...',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import AppShell from '@/components/shared/AppShell'
@@ -22,6 +22,7 @@ interface Member {
 interface Org {
   id: string
   name: string
+  slug: string
   type: string
   members: Member[]
   myRole: string
@@ -36,6 +37,9 @@ export default function OrgSettingsPage() {
   const [myRole, setMyRole] = useState<string>('member')
   const [renaming, setRenaming] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newSlug, setNewSlug] = useState('')
+  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
+  const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -46,23 +50,48 @@ export default function OrgSettingsPage() {
         setOrg(data)
         setMyRole(data.myRole ?? 'member')
         setNewName(data.name)
+        setNewSlug(data.slug)
       })
       .finally(() => setLoading(false))
   }, [orgId])
 
+  function handleSlugChange(value: string) {
+    const slug = value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+/, '')
+    setNewSlug(slug)
+    if (slugTimer.current) clearTimeout(slugTimer.current)
+    if (!slug || slug === org?.slug) { setSlugStatus('idle'); return }
+    setSlugStatus('checking')
+    slugTimer.current = setTimeout(async () => {
+      const res = await fetch(`/api/orgs/check-slug?slug=${encodeURIComponent(slug)}`)
+      const data = await res.json()
+      setSlugStatus(data.available ? 'available' : 'taken')
+    }, 400)
+  }
+
   async function handleRename(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!newName.trim() || newName.trim() === org?.name) return
+    const nameChanged = newName.trim() && newName.trim() !== org?.name
+    const slugChanged = newSlug && newSlug !== org?.slug
+    if (!nameChanged && !slugChanged) return
+    if (slugStatus === 'taken') return
     setRenaming(true)
     try {
+      const body: Record<string, string> = {}
+      if (nameChanged) body.name = newName.trim()
+      if (slugChanged) body.slug = newSlug
       const res = await fetch(`/api/orgs/${orgId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
+        body: JSON.stringify(body),
       })
-      if (!res.ok) throw new Error('Failed to rename')
+      if (!res.ok) {
+        const err = await res.json()
+        if (err.error === 'slug_taken') { setSlugStatus('taken'); return }
+        throw new Error('Failed')
+      }
       const updated = await res.json()
-      setOrg((prev) => prev ? { ...prev, name: updated.name } : prev)
+      setOrg((prev) => prev ? { ...prev, name: updated.name, slug: updated.slug } : prev)
+      setSlugStatus('idle')
       toast.success(t('org_rename_success'))
     } catch {
       toast.error(t('org_rename_error'))
@@ -129,17 +158,43 @@ export default function OrgSettingsPage() {
         <h1 className="text-2xl font-bold">{org.name}</h1>
 
         {myRole === 'owner' && (
-          <div className="flex flex-col gap-3 rounded-lg border p-4">
-            <h2 className="text-sm font-semibold">{t('org_rename_section')}</h2>
-            <form onSubmit={handleRename} className="flex gap-2">
-              <Label htmlFor="org-name" className="sr-only">{t('org_rename_section')}</Label>
-              <Input
-                id="org-name"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="max-w-xs"
-              />
-              <Button type="submit" variant="outline" size="sm" disabled={renaming || !newName.trim() || newName.trim() === org.name}>
+          <div className="flex flex-col gap-4 rounded-lg border p-4">
+            <h2 className="text-sm font-semibold">{t('org_general_section')}</h2>
+            <form onSubmit={handleRename} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="org-name">{t('org_name_label')}</Label>
+                <Input
+                  id="org-name"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="max-w-xs"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="org-slug">{t('org_slug_label')}</Label>
+                <Input
+                  id="org-slug"
+                  value={newSlug}
+                  onChange={(e) => handleSlugChange(e.target.value)}
+                  className="max-w-xs font-mono text-sm"
+                />
+                {slugStatus === 'checking' && (
+                  <p className="text-xs text-muted-foreground">...</p>
+                )}
+                {slugStatus === 'taken' && (
+                  <p className="text-xs text-destructive">{t('org_slug_taken')}</p>
+                )}
+                {slugStatus === 'available' && (
+                  <p className="text-xs text-green-600">{t('org_slug_available')}</p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                className="w-fit"
+                disabled={renaming || slugStatus === 'taken' || slugStatus === 'checking' || (newName.trim() === org.name && newSlug === org.slug)}
+              >
                 {renaming ? t('org_saving') : t('org_save')}
               </Button>
             </form>
