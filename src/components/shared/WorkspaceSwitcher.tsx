@@ -28,7 +28,7 @@ function OrgAvatar({ name }: { name: string }) {
 }
 
 export default function WorkspaceSwitcher() {
-  const { orgs, activeOrg, setActiveOrg } = useWorkspace()
+  const { orgs, activeOrg, setActiveOrg, addOrg } = useWorkspace()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [createOrgOpen, setCreateOrgOpen] = useState(false)
@@ -92,7 +92,9 @@ export default function WorkspaceSwitcher() {
       </DropdownMenu>
 
       <CreateOrgDialog open={createOrgOpen} onOpenChange={setCreateOrgOpen} onCreated={(org) => {
-        setActiveOrg({ id: org.id, name: org.name, slug: org.slug, type: 'enterprise', myRole: 'owner' })
+        const newOrg: WorkspaceOrg = { id: org.id, name: org.name, slug: org.slug, type: 'enterprise', myRole: 'owner' }
+        addOrg(newOrg)
+        setActiveOrg(newOrg)
       }} />
     </>
   )

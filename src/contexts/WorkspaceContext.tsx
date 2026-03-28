@@ -21,6 +21,8 @@ interface WorkspaceContextValue {
   activeOrg: WorkspaceOrg | null
   user: WorkspaceUser | null
   setActiveOrg: (org: WorkspaceOrg) => void
+  addOrg: (org: WorkspaceOrg) => void
+  removeOrg: (orgId: string) => void
   loading: boolean
 }
 
@@ -29,6 +31,8 @@ const WorkspaceContext = createContext<WorkspaceContextValue>({
   activeOrg: null,
   user: null,
   setActiveOrg: () => {},
+  addOrg: () => {},
+  removeOrg: () => {},
   loading: true,
 })
 
@@ -67,8 +71,21 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  function addOrg(org: WorkspaceOrg) {
+    setOrgs((prev) => [...prev, org])
+  }
+
+  function removeOrg(orgId: string) {
+    setOrgs((prev) => prev.filter((o) => o.id !== orgId))
+    setActiveOrgState((prev) => {
+      if (prev?.id !== orgId) return prev
+      const remaining = orgs.filter((o) => o.id !== orgId)
+      return remaining.find((o) => o.type === 'personal') ?? remaining[0] ?? null
+    })
+  }
+
   return (
-    <WorkspaceContext.Provider value={{ orgs, activeOrg, user, setActiveOrg, loading }}>
+    <WorkspaceContext.Provider value={{ orgs, activeOrg, user, setActiveOrg, addOrg, removeOrg, loading }}>
       {children}
     </WorkspaceContext.Provider>
   )
