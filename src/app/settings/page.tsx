@@ -76,7 +76,7 @@ function SentrySettings() {
   const [selectedSlug, setSelectedSlug] = useState('')
   const [fetching, setFetching] = useState(false)
   const [saving, setSaving] = useState(false)
-  const { t } = useT()
+  const { t, dict } = useT()
 
   useEffect(() => {
     fetch('/api/settings/sentry').then((r) => r.json()).then(setConfigs)
@@ -164,7 +164,7 @@ function SentrySettings() {
               </form>
             ) : (
               <div className="flex flex-col gap-3">
-                <p className="text-sm text-muted-foreground">{t('settings_sentry_found')(projects.length, orgSlug)}</p>
+                <p className="text-sm text-muted-foreground">{dict.settings_sentry_found(projects.length, orgSlug)}</p>
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="s-project">{t('settings_sentry_select_label')}</Label>
                   <select
