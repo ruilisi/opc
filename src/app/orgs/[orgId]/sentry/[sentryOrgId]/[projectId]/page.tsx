@@ -7,7 +7,7 @@ import AppShell from '@/components/shared/AppShell'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import type { SentryIssue } from '@/lib/sentry-api'
-import { ArrowLeft, RefreshCw, ExternalLink, User, Zap } from 'lucide-react'
+import { ArrowLeft, RefreshCw, ExternalLink, User, Zap, Trash2 } from 'lucide-react'
 
 const LEVEL_STYLES: Record<string, string> = {
   fatal: 'bg-red-100 text-red-700 border-red-200',
@@ -69,6 +69,18 @@ export default function SentryIssuesPage() {
   const [error, setError] = useState<string | null>(null)
   const [projectName, setProjectName] = useState('')
   const [refreshing, setRefreshing] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  async function deleteIssue(issueId: string) {
+    setDeletingId(issueId)
+    try {
+      const res = await fetch(`/api/orgs/${orgId}/sentry/orgs/${sentryOrgId}/projects/${projectId}/issues/${issueId}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed')
+      setIssues((prev) => prev.filter((i) => i.id !== issueId))
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const load = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true)
@@ -191,7 +203,7 @@ export default function SentryIssuesPage() {
                     </div>
                   </div>
 
-                  {/* Right side: sparkline + stats */}
+                  {/* Right side: sparkline + stats + delete */}
                   <div className="flex shrink-0 items-center gap-4">
                     {issue.stats?.['24h'] && (
                       <Sparkline points={issue.stats['24h']} />
@@ -208,6 +220,14 @@ export default function SentryIssuesPage() {
                         </span>
                       )}
                     </div>
+                    <button
+                      onClick={() => deleteIssue(issue.id)}
+                      disabled={deletingId === issue.id}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive disabled:opacity-40"
+                      title="Delete issue"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
               ))}
