@@ -56,7 +56,23 @@
 ### 3. Sentry 深度集成
 - 无需在多个后台间反复跳转，直接在看板内掌握项目的健康状况，把错误消灭在萌芽状态。
 
-### 4. AI Task Queue — 让 AI 自动消费看板任务
+### 4. 实时协作 — 多人同步，零刷新
+
+OPC 内置基于 SSE（Server-Sent Events）的实时推送，无需 WebSocket，无需额外依赖。
+
+- **看板实时同步**：任何成员移动卡片、创建/删除任务，所有在线用户立即看到变化
+- **评论实时推送**：新评论出现，任务详情对话框自动更新，无需轮询
+- **连接自动恢复**：断线后浏览器原生重连，无感知
+
+```
+用户 A 拖动卡片
+  └─▶ PATCH /api/tasks/{id}/move
+       └─▶ emitBoardEvent(boardId, { type: "task.moved", ... })
+            └─▶ SSE 推送至所有订阅 /api/boards/{boardId}/events 的客户端
+                 └─▶ 用户 B / C 的看板即时更新
+```
+
+### 5. AI Task Queue — 让 AI 自动消费看板任务
 
 OPC 的看板可以直接作为 AI Agent 的任务队列使用。为看板生成一个专属 Token，把它丢给 Claude 或任何 AI，Agent 即可完全自主地领取任务、执行、记录结果、标记完成——循环往复，无需人工介入。
 

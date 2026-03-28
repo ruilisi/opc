@@ -12,6 +12,7 @@ import UserAvatar from '@/components/shared/UserAvatar'
 import { toast } from 'sonner'
 import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft, Trash2, Copy } from 'lucide-react'
 import type { Task, ChecklistItem, Attachment, TaskMember, TaskLabel } from '@/types'
+import { useBoardSubscription } from '@/lib/hooks/useBoardSubscription'
 
 interface BoardMemberUser {
   id: string
@@ -165,6 +166,23 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
       })
       .finally(() => setLoading(false))
   }, [taskId, boardId, open])
+
+  const effectiveBoardId = boardId || task?.column?.boardId || ''
+  useBoardSubscription(effectiveBoardId, {
+    onCommentAdded: (cTaskId, comment) => {
+      if (cTaskId !== taskId) return
+      setTask((t) => {
+        if (!t) return t
+        const comments = (t.comments ?? []) as Array<{ id: string }>
+        if (comments.some((c) => c.id === comment.id)) return t
+        return { ...t, comments: [...comments, comment] }
+      })
+    },
+    onTaskUpdated: (updated) => {
+      if (updated.id !== taskId) return
+      setTask((t) => t ? { ...t, ...updated } : t)
+    },
+  })
 
   // Close pickers on outside click
   useEffect(() => {

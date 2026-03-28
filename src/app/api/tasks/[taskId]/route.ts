@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { emitBoardEvent } from '@/lib/realtime'
 
 export async function GET(
   request: NextRequest,
@@ -51,8 +52,10 @@ export async function PATCH(
       labels: { include: { label: true } },
       checklist: { orderBy: { order: 'asc' } },
       attachments: { orderBy: { createdAt: 'asc' } },
+      column: { select: { boardId: true } },
     },
   })
+  emitBoardEvent(task.column.boardId, { type: 'task.updated', payload: task })
   return NextResponse.json(task)
 }
 
@@ -63,6 +66,8 @@ export async function DELETE(
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { taskId } = await params
+  const task = await prisma.task.findUnique({ where: { id: taskId }, select: { column: { select: { boardId: true } } } })
   await prisma.task.delete({ where: { id: taskId } })
+  if (task) emitBoardEvent(task.column.boardId, { type: 'task.deleted', payload: { taskId } })
   return NextResponse.json({ ok: true })
 }

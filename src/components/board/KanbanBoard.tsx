@@ -10,6 +10,7 @@ import { computeOrder } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Task, BoardFilters } from '@/types'
 import { useT } from '@/lib/i18n'
+import { useBoardSubscription } from '@/lib/hooks/useBoardSubscription'
 
 interface Column {
   id: string
@@ -190,6 +191,47 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   function handleColumnRenamed(columnId: string, name: string) {
     setColumns((cols) => cols.map((c) => c.id === columnId ? { ...c, name } : c))
   }
+
+  useBoardSubscription(boardId, {
+    onTaskMoved: (taskId, columnId, order) => {
+      setColumns((cols) => {
+        const currentTask = cols.flatMap((c) => c.tasks).find((t) => t.id === taskId)
+        if (currentTask && currentTask.columnId === columnId && currentTask.order === order) return cols
+        let moved: Task | undefined
+        const removed = cols.map((c) => {
+          const idx = c.tasks.findIndex((t) => t.id === taskId)
+          if (idx === -1) return c
+          moved = { ...c.tasks[idx], columnId, order }
+          return { ...c, tasks: c.tasks.filter((t) => t.id !== taskId) }
+        })
+        if (!moved) return cols
+        return removed.map((c) => {
+          if (c.id !== columnId) return c
+          const tasks = [...c.tasks, moved!].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          return { ...c, tasks }
+        })
+      })
+    },
+    onTaskUpdated: (task) => {
+      setColumns((cols) =>
+        cols.map((c) => ({ ...c, tasks: c.tasks.map((t) => (t.id === task.id ? { ...t, ...task } : t)) }))
+      )
+    },
+    onTaskCreated: (task) => {
+      setColumns((cols) =>
+        cols.map((c) => {
+          if (c.id !== task.columnId) return c
+          if (c.tasks.some((t) => t.id === task.id)) return c
+          return { ...c, tasks: [...c.tasks, task].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) }
+        })
+      )
+    },
+    onTaskDeleted: (taskId) => {
+      setColumns((cols) =>
+        cols.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== taskId) }))
+      )
+    },
+  })
 
   return (
     <>

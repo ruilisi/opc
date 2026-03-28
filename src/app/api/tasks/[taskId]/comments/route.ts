@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { emitBoardEvent } from '@/lib/realtime'
 
 export async function GET(
   request: NextRequest,
@@ -29,5 +30,7 @@ export async function POST(
     data: { content, taskId, authorId: userId },
     include: { author: { select: { id: true, name: true, avatarUrl: true } } },
   })
+  const task = await prisma.task.findUnique({ where: { id: taskId }, select: { column: { select: { boardId: true } } } })
+  if (task) emitBoardEvent(task.column.boardId, { type: 'comment.added', payload: { taskId, comment } })
   return NextResponse.json(comment, { status: 201 })
 }

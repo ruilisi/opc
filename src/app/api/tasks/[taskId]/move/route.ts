@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { emitBoardEvent } from '@/lib/realtime'
 
 export async function PATCH(
   request: NextRequest,
@@ -12,6 +13,8 @@ export async function PATCH(
   const task = await prisma.task.update({
     where: { id: taskId },
     data: { ...(columnId && { columnId }), ...(order !== undefined && { order }) },
+    include: { column: { select: { boardId: true } } },
   })
+  emitBoardEvent(task.column.boardId, { type: 'task.moved', payload: { taskId, columnId: task.columnId, order: task.order } })
   return NextResponse.json(task)
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { emitBoardEvent } from '@/lib/realtime'
 
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id')
@@ -17,7 +18,11 @@ export async function POST(request: NextRequest) {
       columnId,
       order: (maxOrder._max.order ?? 0) + 1,
     },
-    include: { members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } } },
+    include: {
+      members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+      column: { select: { boardId: true } },
+    },
   })
+  emitBoardEvent(task.column.boardId, { type: 'task.created', payload: task })
   return NextResponse.json(task, { status: 201 })
 }
