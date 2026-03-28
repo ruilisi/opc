@@ -11,6 +11,7 @@ const translations = {
     nav_sentry: 'Sentry',
     nav_org_settings: 'Org Settings',
     nav_settings: 'Settings',
+    nav_join: 'Join OPC',
     // Theme
     theme_light: 'Light',
     theme_dark: 'Dark',
@@ -184,6 +185,7 @@ const translations = {
     nav_sentry: '错误监控',
     nav_org_settings: '组织设置',
     nav_settings: '设置',
+    nav_join: '加入 OPC',
     // Theme
     theme_light: '浅色',
     theme_dark: '深色',

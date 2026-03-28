@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Settings, Bug, Building2, Sun, Moon, Monitor, Languages } from 'lucide-react'
+import { LayoutDashboard, Settings, Bug, Building2, Sun, Moon, Monitor, Languages, Heart } from 'lucide-react'
 import { WorkspaceProvider, useWorkspace } from '@/contexts/WorkspaceContext'
 import WorkspaceSwitcher from '@/components/shared/WorkspaceSwitcher'
 import { useTheme } from 'next-themes'
@@ -63,6 +63,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       show: !loading && activeOrg?.type === 'enterprise',
     },
     { href: '/settings', icon: Settings, label: t('nav_settings'), show: true },
+    { href: '/about', icon: Heart, label: t('nav_join'), show: true },
   ]
 
   return (

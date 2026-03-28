@@ -1,7 +1,27 @@
 # OPC (One Person Company) — 守护每一个独自奔跑的灵魂
 
-> **“一个人，也可以是一支军队。”**
+> **”一个人，也可以是一支军队。”**
 > 这是一款为独立创业者、自由职业者及 1–10 人精干团队量身打造的极简项目管理系统。它不只是为了管理任务，更是为了守护你最宝贵的资源：**注意力与时间**。
+
+## 视频介绍
+
+你每天要打开几个 SaaS 软件？Jira、Notion、Slack、Figma、Sentry……每一个都要单独登录、单独跳转，90% 的功能你根本用不到，但那 90% 的冗余却在时刻分散你的注意力。
+
+OPC 解决两个核心问题：
+
+**① 把几十个 SaaS 聚合成一张菜单**
+好的 SaaS 都有 API，我们不需要等厂商帮你做精简，直接把你真正需要的那部分 API 聚合进来，一个平台搞定，按需取用。AI Vibe Programming 让这件事的工程量大幅降低。
+
+**② 用 AI 驱动你的数据和管理流程**
+看板任务直接变成 AI Agent 的 prompt，Agent 自动领取任务、写代码、生成 plan、push 到 GitHub —— 全程无需人工介入。视频中演示了 Claude Sonnet 4.6 从 OPC 看板拿任务、实现 Sentry 一键删除报错功能、再到 ACP（add / commit / push）的完整闭环。
+
+**视频亮点：**
+- 🤖 AI Agent 自动消费看板任务全流程演示
+- 🐛 Sentry 报错直接在 OPC 内删除（无需跳转）
+- ⚡ ACP 一键提交，commit message 比人写得还详细
+- 📋 截图粘贴直传七牛 CDN
+
+---
 
 ---
 
@@ -191,6 +211,31 @@ bun run dev
 - [ ] **时间线视图**：从全局视角把控项目的生命周期。
 - [ ] **移动端优化**：随时随地捕捉灵感。
 - [ ] **多语言支持**：让全球的 OPC 都能链接在一起。
+
+---
+
+## 加入 OPC
+
+OPC 是一个完全开源的项目，欢迎任何人参与共建。
+
+### 你可以这样贡献
+
+- **提 Issue**：发现 Bug 或有新功能想法，[开一个 Issue](https://github.com/ruilisi/opc/issues)
+- **提 PR**：修复问题、新增功能、改善文档，直接提交 Pull Request
+- **分享使用体验**：把 OPC 介绍给有需要的朋友，或写一篇使用心得
+
+### 本地开发
+
+```bash
+git clone https://github.com/ruilisi/opc
+cd opc
+bun install
+cp .env.local.example .env.local
+bunx prisma migrate dev --name init
+bun run dev
+```
+
+技术栈：Next.js 16 · TypeScript · Tailwind v4 · Prisma 7 · PostgreSQL · shadcn/ui
 
 ---
 
