@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // One enterprise org per owner
-  const existing = await prisma.orgMember.findFirst({ where: { userId, role: 'owner', org: { type: 'enterprise' } } })
-  if (existing) return NextResponse.json({ error: 'You already own an organization' }, { status: 409 })
+  // Max two enterprise orgs per owner
+  const existingCount = await prisma.orgMember.count({ where: { userId, role: 'owner', org: { type: 'enterprise' } } })
+  if (existingCount >= 2) return NextResponse.json({ error: 'You can own at most 2 organizations' }, { status: 409 })
 
   const { name, slug: rawSlug } = await request.json()
   if (!name?.trim()) return NextResponse.json({ error: 'name is required' }, { status: 400 })

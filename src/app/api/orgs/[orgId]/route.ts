@@ -42,3 +42,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const org = await prisma.organization.update({ where: { id: orgId }, data: updates })
   return NextResponse.json(org)
 }
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ orgId: string }> }) {
+  const userId = request.headers.get('x-user-id')
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { orgId } = await params
+
+  const membership = await prisma.orgMember.findUnique({ where: { orgId_userId: { orgId, userId } } })
+  if (!membership || membership.role !== 'owner') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  await prisma.$transaction([
+    prisma.board.deleteMany({ where: { orgId } }),
+    prisma.organization.delete({ where: { id: orgId } }),
+  ])
+
+  return new NextResponse(null, { status: 204 })
+}

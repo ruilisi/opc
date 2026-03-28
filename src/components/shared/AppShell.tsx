@@ -2,9 +2,28 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Settings, Bug, Building2 } from 'lucide-react'
+import { LayoutDashboard, Settings, Bug, Building2, Sun, Moon, Monitor } from 'lucide-react'
 import { WorkspaceProvider, useWorkspace } from '@/contexts/WorkspaceContext'
 import WorkspaceSwitcher from '@/components/shared/WorkspaceSwitcher'
+import { useTheme } from 'next-themes'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  const icon = theme === 'dark' ? <Moon size={15} /> : theme === 'light' ? <Sun size={15} /> : <Monitor size={15} />
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+        {icon}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" side="top">
+        <DropdownMenuItem onClick={() => setTheme('light')}><Sun size={14} className="mr-2" />Light</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}><Moon size={14} className="mr-2" />Dark</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}><Monitor size={14} className="mr-2" />Match system</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -48,8 +67,11 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="border-t p-2">
-          <WorkspaceSwitcher />
+        <div className="border-t p-2 flex items-center gap-1">
+          <div className="flex-1 min-w-0">
+            <WorkspaceSwitcher />
+          </div>
+          <ThemeToggle />
         </div>
       </aside>
       {/* Main content */}

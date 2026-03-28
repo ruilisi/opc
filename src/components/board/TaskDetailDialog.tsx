@@ -104,6 +104,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
 
   useEffect(() => {
     if (!open) return
+    setConfirmDelete(false)
 
     if (!taskId) {
       // Create mode — reset fields and load board data

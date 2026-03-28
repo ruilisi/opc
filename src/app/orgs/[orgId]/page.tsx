@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 import { UserX } from 'lucide-react'
 
 interface Member {
@@ -27,11 +28,14 @@ interface Org {
 
 export default function OrgSettingsPage() {
   const { orgId } = useParams<{ orgId: string }>()
+  const router = useRouter()
   const [org, setOrg] = useState<Org | null>(null)
   const [loading, setLoading] = useState(true)
   const [myRole, setMyRole] = useState<string>('member')
   const [renaming, setRenaming] = useState(false)
   const [newName, setNewName] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetch(`/api/orgs/${orgId}`)
@@ -62,6 +66,24 @@ export default function OrgSettingsPage() {
       toast.error('Failed to rename organization')
     } finally {
       setRenaming(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/orgs/${orgId}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const err = await res.json()
+        toast.error(err.error ?? 'Failed to delete organization')
+        return
+      }
+      toast.success('Organization deleted')
+      router.push('/')
+    } catch {
+      toast.error('Failed to delete organization')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -119,6 +141,27 @@ export default function OrgSettingsPage() {
                 {renaming ? 'Saving...' : 'Save'}
               </Button>
             </form>
+          </div>
+        )}
+
+        {myRole === 'owner' && !isPersonal && (
+          <div className="flex flex-col gap-3 rounded-lg border border-destructive/40 p-4">
+            <h2 className="text-sm font-semibold text-destructive">Danger Zone</h2>
+            {confirmDelete ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm">Delete this organization and all its boards? This cannot be undone.</span>
+                <Button size="sm" variant="destructive" onClick={handleDelete} disabled={deleting}>
+                  {deleting ? 'Deleting...' : 'Yes, delete'}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setConfirmDelete(false)} disabled={deleting}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="destructive" className="w-fit" onClick={() => setConfirmDelete(true)}>
+                Delete Organization
+              </Button>
+            )}
           </div>
         )}
 
