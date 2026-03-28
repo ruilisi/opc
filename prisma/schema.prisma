@@ -55,6 +55,8 @@ model OrgInvite {
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   createdBy String
   expiresAt DateTime?
+  maxUses   Int?
+  useCount  Int          @default(0)
   createdAt DateTime     @default(now())
 }
 

@@ -21,11 +21,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const expired = invite.expiresAt && invite.expiresAt < new Date()
   if (expired) return NextResponse.json({ error: 'Invite expired' }, { status: 410 })
 
-  await prisma.orgMember.upsert({
-    where: { orgId_userId: { orgId: invite.orgId, userId } },
-    create: { orgId: invite.orgId, userId, role: 'member' },
-    update: {},
-  })
+  if (invite.maxUses !== null && invite.useCount >= invite.maxUses) {
+    return NextResponse.json({ error: 'Invite has reached its maximum uses' }, { status: 410 })
+  }
+
+  await prisma.$transaction([
+    prisma.orgMember.upsert({
+      where: { orgId_userId: { orgId: invite.orgId, userId } },
+      create: { orgId: invite.orgId, userId, role: 'member' },
+      update: {},
+    }),
+    prisma.orgInvite.update({
+      where: { token: invite.token },
+      data: { useCount: { increment: 1 } },
+    }),
+  ])
 
   const org = await prisma.organization.findUnique({ where: { id: invite.orgId } })
   return NextResponse.json(org)
