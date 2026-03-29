@@ -14,10 +14,15 @@ export const metadata: Metadata = {
   description: 'Kanban project management for small teams',
 }
 
+const remoteApiBase = process.env.REMOTE_API_URL ?? ''
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {remoteApiBase && (
+          <script dangerouslySetInnerHTML={{ __html: `window.__OPC_API_BASE__=${JSON.stringify(remoteApiBase)}` }} />
+        )}
         <I18nProvider>
           <ApiBaseProvider>
             <ThemeProvider>
