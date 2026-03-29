@@ -220,6 +220,11 @@ const translations = {
     folders_delete: 'Delete folder',
     folders_delete_warning: 'Files inside will be moved to root, not deleted.',
     folders_delete_ok: 'Delete folder',
+    folders_created: 'Folder created',
+    folders_renamed: 'Folder renamed',
+    folders_deleted: 'Folder deleted',
+    files_moved: 'File moved',
+    generic_error: 'Something went wrong',
     // Tags
     tags_title: 'Tags',
     tags_new: 'New tag',
@@ -442,6 +447,11 @@ const translations = {
     folders_delete: '删除文件夹',
     folders_delete_warning: '文件夹内的文件将移至根目录，不会被删除。',
     folders_delete_ok: '删除文件夹',
+    folders_created: '文件夹已创建',
+    folders_renamed: '文件夹已重命名',
+    folders_deleted: '文件夹已删除',
+    files_moved: '文件已移动',
+    generic_error: '操作失败，请重试',
     // Tags
     tags_title: '标签',
     tags_new: '新建标签',

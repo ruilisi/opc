@@ -28,6 +28,7 @@ export default function OrgFilesPage() {
   const [loading, setLoading] = useState(true)
 
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [sort, setSort] = useState<'name' | 'size' | 'createdAt'>('createdAt')
@@ -83,16 +84,26 @@ export default function OrgFilesPage() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
+  // Debounce search input → search state
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
   // Upload handler
   async function handleUpload(fileToUpload: File) {
     if (fileToUpload.size > FILE_SIZE_LIMIT) { toast.error(t('files_too_large')); return }
     const formData = new FormData()
     formData.append('file', fileToUpload)
     if (selectedFolderId) formData.append('folderId', selectedFolderId)
-    const res = await fetch(`/api/orgs/${orgId}/files`, { method: 'POST', body: formData })
-    if (!res.ok) {
-      const data = await res.json()
-      toast.error(data.error ?? t('files_upload_error'))
+    try {
+      const res = await fetch(`/api/orgs/${orgId}/files`, { method: 'POST', body: formData })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error ?? t('files_upload_error'))
+      }
+    } catch {
+      toast.error(t('files_upload_error'))
     }
   }
 
@@ -132,12 +143,17 @@ export default function OrgFilesPage() {
   // Rename submit
   async function submitRename() {
     if (!renaming) return
+    if (!renaming.name.trim()) return
     const res = await fetch(`/api/orgs/${orgId}/files/${renaming.file.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: renaming.name }),
     })
-    if (!res.ok) toast.error((await res.json()).error)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? t('generic_error'))
+      return
+    }
     setRenaming(null)
   }
 
@@ -145,7 +161,10 @@ export default function OrgFilesPage() {
   async function deleteFile(file: OrgFile) {
     if (!confirm(t('files_delete_confirm'))) return
     const res = await fetch(`/api/orgs/${orgId}/files/${file.id}`, { method: 'DELETE' })
-    if (!res.ok) toast.error((await res.json()).error)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? t('generic_error'))
+    }
   }
 
   // Create folder
@@ -157,7 +176,12 @@ export default function OrgFilesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, parentId }),
     })
-    if (!res.ok) toast.error((await res.json()).error)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? t('generic_error'))
+      return
+    }
+    toast.success(t('folders_created'))
   }
 
   // Rename folder
@@ -169,14 +193,24 @@ export default function OrgFilesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
     })
-    if (!res.ok) toast.error((await res.json()).error)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? t('generic_error'))
+      return
+    }
+    toast.success(t('folders_renamed'))
   }
 
   // Delete folder
   async function deleteFolder(folder: OrgFolder) {
     if (!confirm(t('folders_delete_warning'))) return
     const res = await fetch(`/api/orgs/${orgId}/folders/${folder.id}`, { method: 'DELETE' })
-    if (!res.ok) toast.error((await res.json()).error)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? t('generic_error'))
+      return
+    }
+    toast.success(t('folders_deleted'))
   }
 
   // Move file
@@ -186,7 +220,13 @@ export default function OrgFilesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ folderId: targetFolderId }),
     })
-    if (!res.ok) toast.error((await res.json()).error)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? t('generic_error'))
+      setMoving(null)
+      return
+    }
+    toast.success(t('files_moved'))
     setMoving(null)
   }
 
@@ -194,7 +234,11 @@ export default function OrgFilesPage() {
   async function toggleTag(file: OrgFile, tagId: string) {
     const has = file.tags.some((t) => t.tag.id === tagId)
     const method = has ? 'DELETE' : 'POST'
-    await fetch(`/api/orgs/${orgId}/files/${file.id}/tags/${tagId}`, { method })
+    const res = await fetch(`/api/orgs/${orgId}/files/${file.id}/tags/${tagId}`, { method })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? t('generic_error'))
+    }
   }
 
   function cycleSortBy(col: 'name' | 'size' | 'createdAt') {
@@ -211,8 +255,8 @@ export default function OrgFilesPage() {
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={t('files_search_ph')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="pl-8 h-8 text-sm"
           />
         </div>
