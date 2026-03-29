@@ -89,3 +89,43 @@ export interface OrgInvite {
   expiresAt?: string | null
   createdAt: string
 }
+
+export interface OrgFileTag {
+  id: string
+  name: string
+  color: string
+  orgId: string
+  createdAt: string
+}
+
+export interface OrgFolder {
+  id: string
+  name: string
+  orgId: string
+  parentId: string | null
+  createdById: string
+  createdAt: string
+  children?: OrgFolder[]
+}
+
+export interface OrgFileUploader {
+  id: string
+  name: string
+  avatarUrl?: string | null
+}
+
+export interface OrgFile {
+  id: string
+  name: string
+  url: string
+  key: string
+  size: number
+  mimeType: string
+  orgId: string
+  folderId: string | null
+  uploaderId: string
+  uploader: OrgFileUploader
+  tags: Array<{ tag: OrgFileTag }>
+  createdAt: string
+  updatedAt: string
+}
