@@ -22,7 +22,9 @@ model User {
   taskMembers  TaskMember[]
   comments     TaskComment[]
   apiTokens    ApiToken[]
-  orgMembers   OrgMember[]
+  orgMembers     OrgMember[]
+  uploadedFiles  OrgFile[]   @relation("FileUploader")
+  createdFolders OrgFolder[] @relation("FolderCreator")
 }
 
 model Organization {
@@ -36,6 +38,9 @@ model Organization {
   invites     OrgInvite[]
   boards      Board[]
   sentryOrgs  SentryOrg[]
+  folders     OrgFolder[]
+  files       OrgFile[]
+  fileTags    OrgFileTag[]
 }
 
 model OrgMember {
@@ -58,6 +63,56 @@ model OrgInvite {
   maxUses   Int?
   useCount  Int          @default(0)
   createdAt DateTime     @default(now())
+}
+
+model OrgFolder {
+  id          String       @id @default(cuid())
+  name        String
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      OrgFolder?   @relation("FolderTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    OrgFolder[]  @relation("FolderTree")
+  files       OrgFile[]
+  createdById String
+  createdBy   User         @relation("FolderCreator", fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+}
+
+model OrgFile {
+  id         String                 @id @default(cuid())
+  name       String
+  url        String
+  key        String
+  size       Int
+  mimeType   String
+  orgId      String
+  org        Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  folderId   String?
+  folder     OrgFolder?             @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  uploaderId String
+  uploader   User                   @relation("FileUploader", fields: [uploaderId], references: [id])
+  tags       OrgFileTagAssignment[]
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+}
+
+model OrgFileTag {
+  id        String                 @id @default(cuid())
+  name      String
+  color     String                 @default("#6366f1")
+  orgId     String
+  org       Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  files     OrgFileTagAssignment[]
+  createdAt DateTime               @default(now())
+}
+
+model OrgFileTagAssignment {
+  fileId String
+  tagId  String
+  file   OrgFile    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  tag    OrgFileTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([fileId, tagId])
 }
 
 model Board {
