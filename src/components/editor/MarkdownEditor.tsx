@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
+import { useTheme } from 'next-themes'
 
 const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 const MDPreview = dynamic(() => import('@uiw/react-md-editor').then((m) => m.default.Markdown), { ssr: false })
@@ -19,6 +20,8 @@ export default function MarkdownEditor({ value, onChange, onBlur, placeholder, h
   const [editing, setEditing] = useState(false)
   const [fading, setFading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const { resolvedTheme } = useTheme()
+  const colorMode = resolvedTheme === 'dark' ? 'dark' : 'light'
 
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
     const items = Array.from(e.clipboardData.items)
@@ -63,7 +66,7 @@ export default function MarkdownEditor({ value, onChange, onBlur, placeholder, h
       ref={containerRef}
       onPaste={handlePaste}
       onBlur={handleBlur}
-      data-color-mode="light"
+      data-color-mode={colorMode}
       className="w-full"
       style={{ transition: 'opacity 120ms ease', opacity: fading ? 0 : 1 }}
     >
