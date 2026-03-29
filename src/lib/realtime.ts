@@ -16,3 +16,32 @@ export function subscribeBoardEvents(boardId: string, handler: (event: BoardEven
   emitter.on(`board:${boardId}`, handler)
   return () => emitter.off(`board:${boardId}`, handler)
 }
+
+export interface OrgFileEvent {
+  type:
+    | 'file.uploaded'
+    | 'file.renamed'
+    | 'file.moved'
+    | 'file.deleted'
+    | 'file.tag_added'
+    | 'file.tag_removed'
+    | 'folder.created'
+    | 'folder.renamed'
+    | 'folder.deleted'
+    | 'tag.created'
+    | 'tag.updated'
+    | 'tag.deleted'
+  payload: object
+}
+
+export function emitOrgFileEvent(orgId: string, event: OrgFileEvent) {
+  emitter.emit(`org-files:${orgId}`, event)
+}
+
+export function subscribeOrgFileEvents(
+  orgId: string,
+  handler: (event: OrgFileEvent) => void
+): () => void {
+  emitter.on(`org-files:${orgId}`, handler)
+  return () => emitter.off(`org-files:${orgId}`, handler)
+}
