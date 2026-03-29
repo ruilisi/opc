@@ -43,3 +43,29 @@ export async function uploadToQiniu(
     })
   })
 }
+
+export async function deleteFromQiniu(key: string): Promise<void> {
+  const setting = await prisma.appSetting.findUnique({ where: { key: 'qiniu' } })
+  const cfg = setting ? JSON.parse(setting.value) : {}
+
+  const accessKey = cfg.accessKey || process.env.QINIU_ACCESS_KEY || ''
+  const secretKey = cfg.secretKey || process.env.QINIU_SECRET_KEY || ''
+  const bucket    = cfg.bucket    || process.env.QINIU_BUCKET      || ''
+
+  if (!accessKey || !secretKey || !bucket) return
+
+  const mac = new qiniu.auth.digest.Mac(accessKey, secretKey)
+  const config = new qiniu.conf.Config()
+  const bucketManager = new qiniu.rs.BucketManager(mac, config)
+
+  await new Promise<void>((resolve, reject) => {
+    bucketManager.delete(bucket, key, (err, _body, info) => {
+      if (err || (info.statusCode !== 200 && info.statusCode !== 612)) {
+        // 612 = object not found (already deleted), treat as success
+        reject(err ?? new Error(`Qiniu delete failed: ${info.statusCode}`))
+      } else {
+        resolve()
+      }
+    })
+  })
+}
