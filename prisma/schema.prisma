@@ -77,6 +77,8 @@ model OrgFolder {
   createdById String
   createdBy   User         @relation("FolderCreator", fields: [createdById], references: [id])
   createdAt   DateTime     @default(now())
+
+  @@index([orgId])
 }
 
 model OrgFile {
@@ -95,6 +97,9 @@ model OrgFile {
   tags       OrgFileTagAssignment[]
   createdAt  DateTime               @default(now())
   updatedAt  DateTime               @updatedAt
+
+  @@index([orgId, folderId])
+  @@index([orgId, createdAt(sort: Desc)])
 }
 
 model OrgFileTag {
@@ -105,6 +110,8 @@ model OrgFileTag {
   org       Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
   files     OrgFileTagAssignment[]
   createdAt DateTime               @default(now())
+
+  @@index([orgId])
 }
 
 model OrgFileTagAssignment {
