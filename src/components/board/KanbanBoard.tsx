@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Filter } from 'lucide-react'
 import { computeOrder } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PromptDialog } from '@/components/ui/prompt-dialog'
 import type { Task, BoardFilters } from '@/types'
 import { useT } from '@/lib/i18n'
 import { useBoardSubscription } from '@/lib/hooks/useBoardSubscription'
@@ -32,6 +33,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   const [taskDialogOpen, setTaskDialogOpen] = useState(false)
   const [filters, setFilters] = useState<BoardFilters>({ labelIds: [], userIds: [], due: null })
   const [filterOpen, setFilterOpen] = useState(false)
+  const [addColumnOpen, setAddColumnOpen] = useState(false)
   const filterPanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -146,9 +148,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
     }
   }, [columns, boardId, t])
 
-  async function addColumn() {
-    const name = prompt(t('board_add_column_prompt'))
-    if (!name) return
+  async function confirmAddColumn(name: string) {
     try {
       const res = await fetch(`/api/boards/${boardId}/columns`, {
         method: 'POST',
@@ -364,7 +364,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
               ))}
               {provided.placeholder}
               <div className="shrink-0 w-64">
-                <Button variant="outline" className="w-full" onClick={addColumn}>
+                <Button variant="outline" className="w-full" onClick={() => setAddColumnOpen(true)}>
                   <Plus size={16} />
                   {t('board_add_column')}
                 </Button>
@@ -380,6 +380,15 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         onUpdated={handleTaskUpdated}
         onDeleted={handleTaskDeleted}
         onCreated={(task) => task.columnId ? handleTaskCreated(task.columnId, task) : undefined}
+      />
+      <PromptDialog
+        open={addColumnOpen}
+        onOpenChange={setAddColumnOpen}
+        title={t('board_add_column')}
+        placeholder={t('board_add_column_prompt')}
+        confirmLabel={t('board_add_column_submit')}
+        cancelLabel={t('board_add_column_cancel')}
+        onConfirm={confirmAddColumn}
       />
     </>
   )

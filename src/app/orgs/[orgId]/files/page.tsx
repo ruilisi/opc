@@ -6,6 +6,8 @@ import { Upload, Search, ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { PromptDialog } from '@/components/ui/prompt-dialog'
 import FolderTree from '@/components/files/FolderTree'
 import FileIcon, { formatBytes } from '@/components/files/FileIcon'
 import FileContextMenu from '@/components/files/FileContextMenu'
@@ -40,6 +42,11 @@ export default function OrgFilesPage() {
   const [renaming, setRenaming] = useState<{ file: OrgFile; name: string } | null>(null)
   const [moving, setMoving] = useState<OrgFile | null>(null)
   const [tagging, setTagging] = useState<OrgFile | null>(null)
+  // Modal state for confirm/prompt dialogs
+  const [deleteFileTarget, setDeleteFileTarget] = useState<OrgFile | null>(null)
+  const [creatingFolderParentId, setCreatingFolderParentId] = useState<string | null | undefined>(undefined)
+  const [renamingFolder, setRenamingFolder] = useState<OrgFolder | null>(null)
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState<OrgFolder | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -157,24 +164,25 @@ export default function OrgFilesPage() {
     setRenaming(null)
   }
 
-  // Delete file
-  async function deleteFile(file: OrgFile) {
-    if (!confirm(t('files_delete_confirm'))) return
-    const res = await fetch(`/api/orgs/${orgId}/files/${file.id}`, { method: 'DELETE' })
+  // Delete file (opens confirm modal)
+  function deleteFile(file: OrgFile) { setDeleteFileTarget(file) }
+  async function confirmDeleteFile() {
+    if (!deleteFileTarget) return
+    const res = await fetch(`/api/orgs/${orgId}/files/${deleteFileTarget.id}`, { method: 'DELETE' })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       toast.error(data.error ?? t('generic_error'))
     }
+    setDeleteFileTarget(null)
   }
 
-  // Create folder
-  async function createFolder(parentId: string | null) {
-    const name = prompt(t('folders_new_ph'))
-    if (!name?.trim()) return
+  // Create folder (opens prompt modal)
+  function createFolder(parentId: string | null) { setCreatingFolderParentId(parentId) }
+  async function confirmCreateFolder(name: string) {
     const res = await fetch(`/api/orgs/${orgId}/folders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, parentId }),
+      body: JSON.stringify({ name, parentId: creatingFolderParentId ?? null }),
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
@@ -184,11 +192,11 @@ export default function OrgFilesPage() {
     toast.success(t('folders_created'))
   }
 
-  // Rename folder
-  async function renameFolder(folder: OrgFolder) {
-    const name = prompt(t('folders_rename_ph'), folder.name)
-    if (!name?.trim() || name === folder.name) return
-    const res = await fetch(`/api/orgs/${orgId}/folders/${folder.id}`, {
+  // Rename folder (opens prompt modal)
+  function renameFolder(folder: OrgFolder) { setRenamingFolder(folder) }
+  async function confirmRenameFolder(name: string) {
+    if (!renamingFolder || name === renamingFolder.name) return
+    const res = await fetch(`/api/orgs/${orgId}/folders/${renamingFolder.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
@@ -201,16 +209,18 @@ export default function OrgFilesPage() {
     toast.success(t('folders_renamed'))
   }
 
-  // Delete folder
-  async function deleteFolder(folder: OrgFolder) {
-    if (!confirm(t('folders_delete_warning'))) return
-    const res = await fetch(`/api/orgs/${orgId}/folders/${folder.id}`, { method: 'DELETE' })
+  // Delete folder (opens confirm modal)
+  function deleteFolder(folder: OrgFolder) { setDeleteFolderTarget(folder) }
+  async function confirmDeleteFolder() {
+    if (!deleteFolderTarget) return
+    const res = await fetch(`/api/orgs/${orgId}/folders/${deleteFolderTarget.id}`, { method: 'DELETE' })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       toast.error(data.error ?? t('generic_error'))
       return
     }
     toast.success(t('folders_deleted'))
+    setDeleteFolderTarget(null)
   }
 
   // Move file
@@ -419,6 +429,52 @@ export default function OrgFilesPage() {
 
       {/* Preview modal */}
       <FilePreviewModal file={previewFile} open={previewOpen} onOpenChange={setPreviewOpen} />
+
+      {/* Delete file confirm */}
+      <ConfirmDialog
+        open={deleteFileTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteFileTarget(null) }}
+        title={t('files_delete_confirm')}
+        confirmLabel={t('files_delete_ok')}
+        cancelLabel={t('files_delete_cancel')}
+        destructive
+        onConfirm={confirmDeleteFile}
+      />
+
+      {/* Create folder prompt */}
+      <PromptDialog
+        open={creatingFolderParentId !== undefined}
+        onOpenChange={(open) => { if (!open) setCreatingFolderParentId(undefined) }}
+        title={t('folders_new')}
+        placeholder={t('folders_new_ph')}
+        confirmLabel={t('folders_new_submit')}
+        cancelLabel={t('folders_new_cancel')}
+        onConfirm={confirmCreateFolder}
+      />
+
+      {/* Rename folder prompt */}
+      <PromptDialog
+        open={renamingFolder !== null}
+        onOpenChange={(open) => { if (!open) setRenamingFolder(null) }}
+        title={t('folders_rename')}
+        placeholder={t('folders_rename_ph')}
+        initialValue={renamingFolder?.name ?? ''}
+        confirmLabel={t('folders_rename_submit')}
+        cancelLabel={t('folders_rename_cancel')}
+        onConfirm={confirmRenameFolder}
+      />
+
+      {/* Delete folder confirm */}
+      <ConfirmDialog
+        open={deleteFolderTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteFolderTarget(null) }}
+        title={t('folders_delete')}
+        description={t('folders_delete_warning')}
+        confirmLabel={t('folders_delete_ok')}
+        cancelLabel={t('folders_delete_cancel')}
+        destructive
+        onConfirm={confirmDeleteFolder}
+      />
     </div>
   )
 }
