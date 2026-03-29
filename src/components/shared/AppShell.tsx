@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Settings, Bug, Building2, Sun, Moon, Monitor, Languages, Heart } from 'lucide-react'
+import { LayoutDashboard, Settings, Bug, Building2, Sun, Moon, Monitor, Languages, Heart, FolderOpen } from 'lucide-react'
 import { WorkspaceProvider, useWorkspace } from '@/contexts/WorkspaceContext'
 import WorkspaceSwitcher from '@/components/shared/WorkspaceSwitcher'
 import { useTheme } from 'next-themes'
@@ -54,6 +54,12 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       href: activeOrg ? `/orgs/${activeOrg.id}/sentry` : '#',
       icon: Bug,
       label: t('nav_sentry'),
+      show: !loading && !!activeOrg,
+    },
+    {
+      href: activeOrg ? `/orgs/${activeOrg.id}/files` : '#',
+      icon: FolderOpen,
+      label: t('nav_files'),
       show: !loading && !!activeOrg,
     },
     {
