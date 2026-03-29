@@ -29,8 +29,13 @@ export async function GET(
   const folderId = searchParams.get('folderId')
   const search = searchParams.get('search')
   const tagIds = searchParams.getAll('tagId')
-  const sort = (searchParams.get('sort') ?? 'createdAt') as 'name' | 'size' | 'createdAt'
-  const order = (searchParams.get('order') ?? 'desc') as 'asc' | 'desc'
+
+  const VALID_SORTS = ['name', 'size', 'createdAt'] as const
+  type SortField = (typeof VALID_SORTS)[number]
+  const rawSort = searchParams.get('sort') ?? 'createdAt'
+  const sort: SortField = (VALID_SORTS as readonly string[]).includes(rawSort) ? (rawSort as SortField) : 'createdAt'
+  const rawOrder = searchParams.get('order') ?? 'desc'
+  const order: 'asc' | 'desc' = rawOrder === 'asc' ? 'asc' : 'desc'
 
   const where: Record<string, unknown> = { orgId }
   if (!search) {

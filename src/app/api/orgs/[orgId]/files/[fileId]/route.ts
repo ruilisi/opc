@@ -39,8 +39,14 @@ export async function PATCH(
   const body = await request.json()
   const { name, folderId } = body
 
-  if (folderId !== undefined && folderId !== null) {
-    const folder = await prisma.orgFolder.findUnique({ where: { id: folderId }, select: { orgId: true } })
+  if (name === undefined && folderId === undefined) {
+    return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+  }
+
+  const normalizedFolderId = folderId === '' ? null : folderId
+
+  if (normalizedFolderId !== undefined && normalizedFolderId !== null) {
+    const folder = await prisma.orgFolder.findUnique({ where: { id: normalizedFolderId }, select: { orgId: true } })
     if (!folder || folder.orgId !== orgId) return NextResponse.json({ error: 'Folder not found' }, { status: 404 })
   }
 
@@ -48,13 +54,13 @@ export async function PATCH(
     where: { id: fileId },
     data: {
       ...(name !== undefined && { name }),
-      ...(folderId !== undefined && { folderId: folderId ?? null }),
+      ...(normalizedFolderId !== undefined && { folderId: normalizedFolderId }),
     },
     include: fileInclude,
   })
 
   if (name !== undefined) emitOrgFileEvent(orgId, { type: 'file.renamed', payload: { fileId, name } })
-  if (folderId !== undefined) emitOrgFileEvent(orgId, { type: 'file.moved', payload: { fileId, folderId: folderId ?? null } })
+  if (normalizedFolderId !== undefined) emitOrgFileEvent(orgId, { type: 'file.moved', payload: { fileId, folderId: normalizedFolderId } })
 
   return NextResponse.json(updated)
 }
