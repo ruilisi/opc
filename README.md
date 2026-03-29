@@ -1,29 +1,9 @@
 # OPC (One Person Company) — 守护每一个独自奔跑的灵魂
 
-> **”一个人，也可以是一支军队。”**
-> 这是一款为独立创业者、自由职业者及 1–10 人精干团队量身打造的极简项目管理系统。它不只是为了管理任务，更是为了守护你最宝贵的资源：**注意力与时间**。
+> **"一个人，也可以是一支军队。"**
+> 为独立创业者、自由职业者及 1–10 人精干团队打造的极简项目管理系统。不只是管理任务，更是守护你最宝贵的资源：**注意力与时间**。
 
-## 项目介绍
-
-你每天要打开几个 SaaS 软件？Jira、Notion、Slack、Figma、Sentry……每一个都要单独登录、单独跳转，90% 的功能你根本用不到，但那 90% 的冗余却在时刻分散你的注意力。SaaS 厂商不会为你精简，他们要卖的是功能的堆砌。
-
-**OPC** 专为独立开发者、自由职业者和 1-10 人精干团队打造，解决两个核心问题：
-
-**① 把几十个 SaaS 聚合成一张菜单**
-好的 SaaS 工具都提供完整的 API。过去，要基于 API 做深度整合，需要大量工程投入。但今天，AI Vibe Programming 让这件事的门槛大幅降低——我们可以快速把你真正需要的那 10% 功能提炼出来，以最简洁的界面呈现，按需取用，像点菜一样自然。
-
-**② 用 AI 驱动你的数据和管理流程**
-项目管理不应止步于”记录任务”。看板任务直接变成 AI Agent 的 prompt，Agent 自动领取任务、写代码、生成 plan、push 到 GitHub —— 全程无需人工介入。人负责战略与创意，AI 负责执行与运营。
-
-**功能亮点：**
-- 🤖 AI Agent 自动消费看板任务，原生支持 `claude` / `gpt` / `gemini` 标签
-- 🐛 Sentry 报错直接在 OPC 内查看并删除，无需跳转
-- ⚡ ACP 一键提交，commit message 由 AI 生成，比手写更详细
-- 📋 截图粘贴直传七牛 CDN，文件管理零负担
-- 🔗 内置七牛云、自持 OAuth，扎根国内生态，开箱即用
-
-开源：**[github.com/ruilisi/opc](https://github.com/ruilisi/opc)**，欢迎 Star / Fork / PR。
-体验：**[opc.ruilisi.com](https://opc.ruilisi.com)**
+**开源**：[github.com/ruilisi/opc](https://github.com/ruilisi/opc) · **体验**：[opc.ruilisi.com](https://opc.ruilisi.com)
 
 ---
 
@@ -38,68 +18,79 @@
 
 ## 感谢金主爸爸
 
-- <a href="https://game.lingti.com"><img src="https://files.lingti.com/images/lingti-logo-圆形不带字.png" height="24" style="vertical-align:middle;display:inline-block;" /></a> **[灵缇AI加速](https://game.lingti.com)** - PC/Mac/iOS/Android 全平台游戏加速、全球首创热点加速、AI 及学术资源定向加速
+- <a href="https://game.lingti.com"><img src="https://files.lingti.com/images/lingti-logo-圆形不带字.png" height="24" style="vertical-align:middle;display:inline-block;" /></a> **[灵缇AI加速](https://game.lingti.com)** — PC/Mac/iOS/Android 全平台游戏加速、全球首创热点加速、AI 及学术资源定向加速
 
 ---
 
-## 它能为你分担什么？
+## 功能全览
 
-### 1. 像呼吸一样自然的看板管理
-- **自由流转**：基于 Trello 习惯的拖拽式看板，让工作流一目了然。
-- **视觉分级**：8 种封面色与彩色标签，一眼识别优先级，拒绝信息过载。
+| 模块 | 核心能力 |
+|------|----------|
+| 看板 | 拖拽卡片、列管理、标签/成员/截止日期过滤、实时多人同步 |
+| 任务 | 富文本内容、清单、附件、评论、标签、成员分配、截止日期、复制任务 |
+| AI Agent | Token 鉴权、Agent API、自动领取/执行/完成任务循环 |
+| 组织 | 多组织切换、角色权限（owner/admin/member/viewer）、邀请链接 |
+| 文件库 | 文件夹树、上传/预览/重命名/移动/删除、标签过滤、直传七牛无大小限制 |
+| Sentry | 多项目配置、在看板内查看并解决错误、无需跳转 |
+| 实时协作 | SSE 推送看板变化和文件库变化，多用户零刷新同步 |
+| 设置 | 七牛云存储配置、API Tokens、Sentry 配置 |
+| 认证 | Lingti OAuth 单点登录、JWT Cookie、Bearer Token |
 
-### 2. 更有温度的任务细节
-- **清单与进度**：拆解复杂的任务，看着进度条一点点填满，是创业路上微小而确定的成就感。
-- **附件直传**：截图直接粘贴，自动上传至七牛云 CDN，让文档管理不再是负担。
-- **协作空间**：支持个人与多组织切换，无论你是独自战斗，还是带队突围，它都能陪你共同成长。
+---
 
-### 3. Sentry 深度集成
-- 无需在多个后台间反复跳转，直接在看板内掌握项目的健康状况，把错误消灭在萌芽状态。
+## 功能详解
 
-### 4. 实时协作 — 多人同步，零刷新
+### 1. 看板 (Kanban Board)
 
-OPC 内置基于 SSE（Server-Sent Events）的实时推送，无需 WebSocket，无需额外依赖。
+基于拖拽的看板是 OPC 的核心工作区。
 
-- **看板实时同步**：任何成员移动卡片、创建/删除任务，所有在线用户立即看到变化
-- **评论实时推送**：新评论出现，任务详情对话框自动更新，无需轮询
-- **连接自动恢复**：断线后浏览器原生重连，无感知
-
-```
-用户 A 拖动卡片
-  └─▶ PATCH /api/tasks/{id}/move
-       └─▶ emitBoardEvent(boardId, { type: "task.moved", ... })
-            └─▶ SSE 推送至所有订阅 /api/boards/{boardId}/events 的客户端
-                 └─▶ 用户 B / C 的看板即时更新
-```
-
-### 5. AI Task Queue — 让 AI 自动消费看板任务
-
-OPC 的看板可以直接作为 AI Agent 的任务队列使用。为看板生成一个专属 Token，把它丢给 Claude 或任何 AI，Agent 即可完全自主地领取任务、执行、记录结果、标记完成——循环往复，无需人工介入。
-
-**任务标签**：为任务打上 `claude` / `gpt` / `gemini` 标签，Agent 可据此自动过滤属于自己的任务。
-
-#### 工作原理
+- **多列管理**：自由创建、重命名、删除列；拖拽列本身可重新排序
+- **卡片拖拽**：跨列移动任务，排序立即持久化
+- **丰富过滤**：按标签、成员、截止日期（逾期/今天/即将/无）多维过滤，一键清除
+- **实时同步**：基于 SSE，任何成员的操作立刻同步到所有在线用户，无需刷新
 
 ```
-你（看板 Owner）
-  │
-  ├─ 点击「Agent Tokens」→ 创建 Token → 复制 Agent Prompt
-  │
-  └─▶ 粘贴给 AI Agent（Claude / GPT / 任意支持 HTTP 的 Agent）
-            │
-            ├─ GET  /api/agent               ← 读取看板全貌
-            ├─ PATCH /api/tasks/:id/move     ← 领取任务（移入 In Progress）
-            ├─ POST  /api/tasks/:id/comments ← 记录进度
-            ├─ PATCH /api/tasks/:id/checklist/:item ← 勾选子任务
-            └─ PATCH /api/tasks/:id/move     ← 完成后移入 Done
+看板 URL：/boards/:boardId
+```
+
+### 2. 任务详情
+
+点击任意卡片进入任务详情对话框，支持：
+
+- **富文本内容**：Markdown 编辑器，支持代码块、图片粘贴直传
+- **清单 (Checklist)**：可添加多个子任务，单独勾选，进度实时展示
+- **附件**：截图粘贴或文件选择，自动上传至七牛云 CDN
+- **评论**：支持 Markdown，可删除评论
+- **标签 (Labels)**：彩色标签系统，在看板过滤中联动
+- **成员分配**：将任务指派给看板成员
+- **截止日期**：日期选择器，逾期高亮
+- **任务复制**：一键复制任务到同一看板任意列
+- **删除任务**：从详情对话框直接删除
+
+### 3. AI Task Queue — AI 自动消费看板
+
+为看板生成专属 Token，粘贴给 AI Agent，Agent 即可完全自主地领取→执行→记录→完成任务，循环往复。
+
+**支持标签**：为任务打上 `claude` / `gpt` / `gemini`，Agent 可据此过滤属于自己的任务。
+
+#### 工作流程
+
+```
+1. GET  /api/agent                           ← 读取看板全貌（列、任务、元信息）
+2. PATCH /api/tasks/:id/move                 ← 领取任务（移入 In Progress）
+3. POST  /api/tasks/:id/comments             ← 记录计划
+4. PATCH /api/tasks/:id/checklist/:itemId    ← 逐步勾选子任务
+5. PATCH /api/tasks/:id                      ← 写入产出物
+6. POST  /api/tasks/:id/comments             ← 总结
+7. PATCH /api/tasks/:id/move                 ← 完成（移入 Done）
+8. 回到第 1 步
 ```
 
 #### 快速开始
 
-1. 打开看板，点击右上角 **Agent Tokens**
-2. 输入名称（如 `claude-agent`），点击 **Create**
-3. 点击 **Copy prompt** — 完整 Prompt 已含 Token 和 API 地址
-4. 粘贴给 Claude，Agent 立刻开始工作
+1. 打开看板 → 右上角 **Agent Tokens** → 创建 Token
+2. 点击 **Copy prompt** — 完整 Prompt 含 Token 和 API 地址
+3. 粘贴给 Claude / GPT / 任意 Agent，立刻开始工作
 
 ```bash
 # 验证连通性
@@ -107,131 +98,244 @@ curl https://opc.ruilisi.com/api/agent \
   -H "Authorization: Bearer opc_board_xxxxx"
 ```
 
-#### Agent 执行流程
+#### Agent API 速查
 
-```
-1. GET /api/agent  →  了解看板结构与所有任务
-2. 从 Todo 列选取最高优先级任务
-   优先级顺序：dueDate 最近 → points 最高 → label urgent/p0 → 列表靠前
-3. PATCH /api/tasks/{id}/move → In Progress  （正式领取）
-4. POST  /api/tasks/{id}/comments            （说明计划，让人类可跟进）
-5. 执行任务，逐步勾选 checklist
-6. PATCH /api/tasks/{id}  content 写入产出物
-7. POST  /api/tasks/{id}/comments            （总结）
-8. PATCH /api/tasks/{id}/move → Done
-9. 回到第 1 步
-```
-
-#### API 速查
-
-所有请求携带 `Authorization: Bearer <token>`，Token 锁定在单个看板，无法访问其他项目数据。
+所有请求携带 `Authorization: Bearer opc_board_xxxxx`，Token 锁定在单个看板。
 
 | 操作 | 方法 & 路径 | Body |
 |------|------------|------|
 | 读取看板快照 | `GET /api/agent` | — |
-| 获取任务详情 | `GET /api/tasks/{id}` | — |
-| 创建任务 | `POST /api/tasks` | `{columnId, title, content?}` |
-| 更新任务 | `PATCH /api/tasks/{id}` | `{title?, content?, dueDate?}` |
-| 移动任务 | `PATCH /api/tasks/{id}/move` | `{columnId}` |
-| 添加评论 | `POST /api/tasks/{id}/comments` | `{content}` |
-| 勾选清单项 | `PATCH /api/tasks/{id}/checklist/{itemId}` | `{checked: true}` |
-| 添加清单项 | `POST /api/tasks/{id}/checklist` | `{text}` |
+| 获取任务详情 | `GET /api/tasks/:id` | — |
+| 创建任务 | `POST /api/tasks` | `{ columnId, title, content? }` |
+| 更新任务 | `PATCH /api/tasks/:id` | `{ title?, content?, dueDate? }` |
+| 移动任务 | `PATCH /api/tasks/:id/move` | `{ columnId }` |
+| 添加评论 | `POST /api/tasks/:id/comments` | `{ content }` |
+| 勾选清单项 | `PATCH /api/tasks/:id/checklist/:itemId` | `{ checked: true }` |
+| 添加清单项 | `POST /api/tasks/:id/checklist` | `{ text }` |
 
-#### Agent Prompt 模板
-
-```
-You are a task execution agent with access to a project board via REST API.
-
-Base URL: https://opc.ruilisi.com/api
-Auth header: Authorization: Bearer <token>
-
-1. Call GET /api/agent to orient yourself (columns, tasks, meta.actions)
-2. Pick the highest priority task from the Todo column
-3. Move it to In Progress: PATCH /api/tasks/{taskId}/move  body: {columnId}
-4. Comment before starting: POST /api/tasks/{taskId}/comments  body: {content: "Starting: <plan>"}
-5. Do the work; tick checklist items as you go
-6. Write results into task content: PATCH /api/tasks/{taskId}  body: {content: "<output>"}
-7. Add summary comment, move task to Done
-8. Repeat
-
-Rules: always comment before starting · never delete tasks · if blocked, comment why and move back to Todo
-```
-
-#### 安全
+#### 安全设计
 
 | 特性 | 说明 |
 |------|------|
-| 看板隔离 | Token 只能访问创建它的看板，无法触及其他项目或账号 |
+| 看板隔离 | Token 只能访问创建它的看板 |
 | 只存哈希 | 服务器存储 SHA256 哈希，明文不落库 |
 | 随时吊销 | 在「Agent Tokens」对话框删除即时失效 |
 | 前缀识别 | 所有 Token 以 `opc_board_` 开头，便于日志过滤 |
+
+### 4. 组织 (Organizations)
+
+- **多组织切换**：左上角工作区选择器，在个人看板与多个组织间自由切换
+- **角色权限**：`owner > admin > member > viewer` 四级权限，控制成员对文件库、看板的操作能力
+- **成员管理**：在组织设置中查看、移除成员
+- **邀请链接**：生成含过期时间（1小时/1天/7天/30天）和最大使用次数的邀请链接，一键分享
+
+### 5. 文件库 (Org File Library)
+
+组织级别的共享文件管理系统，支持任意格式文件。
+
+- **文件夹树**：左侧折叠式文件夹树，支持创建、重命名、删除文件夹（删除时文件移至根目录）
+- **直传七牛**：浏览器直接上传至七牛云 CDN，绕过服务器，**无文件大小限制**
+- **文件操作**：右键菜单支持重命名、移动到文件夹、添加/移除标签、复制链接、下载、删除
+- **文件预览**：内置预览模态框，支持图片、PDF（iframe）、视频、音频、代码/文本；其他格式提供下载
+- **标签系统**：管理员创建彩色标签，成员为文件打标签；顶栏过滤器按标签筛选文件
+- **搜索与排序**：实时搜索（300ms 防抖），按名称/大小/日期排序，支持升/降序
+- **实时同步**：SSE 推送，文件上传/重命名/移动/删除/标签变化即时同步给所有在线成员
+
+```
+文件库 URL：/orgs/:orgId/files
+```
+
+### 6. Sentry 集成
+
+无需离开 OPC，在看板内直接管理项目错误。
+
+- **多项目配置**：在设置中添加多个 Sentry 配置（organization slug + auth token），关联不同项目
+- **错误列表**：按项目查看 Sentry Issues，支持分页
+- **一键解决**：直接在 OPC 内删除/解决 Sentry Issue，无需跳转到 Sentry 后台
+
+```
+Sentry 视图 URL：/orgs/:orgId/sentry
+```
+
+### 7. 实时协作 (SSE Realtime)
+
+OPC 内置两个独立的实时通道，基于 Server-Sent Events（无需 WebSocket，无外部依赖，单进程零配置）。
+
+#### 看板实时同步
+
+订阅 `GET /api/boards/:boardId/events`，推送事件：
+
+| 事件 | 触发时机 |
+|------|----------|
+| `task.moved` | 任务被拖拽或移动 |
+| `task.updated` | 任务内容/标题/日期更新 |
+| `task.created` | 新任务创建 |
+| `task.deleted` | 任务删除 |
+| `comment.added` | 新评论 |
+
+#### 文件库实时同步
+
+订阅 `GET /api/orgs/:orgId/file-events`，推送 12 种事件：
+
+`file.uploaded` · `file.renamed` · `file.moved` · `file.deleted` · `file.tag_added` · `file.tag_removed` · `folder.created` · `folder.renamed` · `folder.deleted` · `tag.created` · `tag.updated` · `tag.deleted`
+
+### 8. 七牛云存储
+
+- 在 **Settings → Qiniu Storage** 中配置 AccessKey、SecretKey、Bucket、Domain、上传路径前缀
+- 支持任务附件（图片粘贴直传）和文件库两套上传场景
+- 文件库采用**客户端直传**（上传 Token 由服务器签发），服务器零带宽消耗，无文件大小限制
+- 文件 MD5 去重：相同内容不重复存储
+
+### 9. 认证与安全
+
+- **Lingti OAuth**：统一登录，支持自部署 Lingti Server
+- **JWT Cookie**：`opc_session` HttpOnly Cookie，服务端签发/验证
+- **Bearer Token**：API Tokens 支持（`opc_board_` 前缀），用于 Agent 和 CLI 集成
+- **中间件鉴权**：所有 API 路由通过 `proxy.ts` 统一校验，注入 `x-user-id`
+
+### 10. 本地文件系统浏览 (Base Folder)
+
+在看板设置中配置一个服务器本地路径作为「Base Folder」，供 AI Agent 读取代码目录结构，方便 Agent 理解项目文件组织。
 
 ---
 
 ## 快速开始
 
-只需几分钟，搭建属于你的“数字总部”：
+### 环境要求
 
-```bash
-# 克隆并进入项目
-git clone https://github.com/ruilisi/opc
-cd opc
+- Node.js 20+ / Bun 1.x
+- PostgreSQL 15+
 
-# 安装依赖
-bun install
-
-# 配置环境变量
-cp .env.local.example .env.local
-# 填写你的数据库、OAuth 及七牛云配置
-
-# 初始化数据库并启动
-bunx prisma migrate dev --name init
-bun run dev
-```
-
-现在，访问 `http://localhost:3000`，开始你的高效之旅。
-
----
-
-## 我们在寻找这样的你
-
-- **独立开发者 / 创作者**：一个人维护多个产品，需要清晰的脑图和任务追踪。
-- **AI 创业者**：深度依赖 AI 工具，希望将管理与执行自动化。
-- **精干的小团队**：讨厌大公司的冗余流程，追求扁平化与极致效率。
-
----
-
-## 路线图：未来的路
-
-- [ ] **AI 深度协作**：自动拆解复杂任务，生成周报，让你更懂自己的进度。
-- [ ] **时间线视图**：从全局视角把控项目的生命周期。
-- [ ] **移动端优化**：随时随地捕捉灵感。
-- [ ] **多语言支持**：让全球的 OPC 都能链接在一起。
-
----
-
-## 加入 OPC
-
-OPC 是一个完全开源的项目，欢迎任何人参与共建。
-
-### 你可以这样贡献
-
-- **提 Issue**：发现 Bug 或有新功能想法，[开一个 Issue](https://github.com/ruilisi/opc/issues)
-- **提 PR**：修复问题、新增功能、改善文档，直接提交 Pull Request
-- **分享使用体验**：把 OPC 介绍给有需要的朋友，或写一篇使用心得
-
-### 本地开发
+### 安装
 
 ```bash
 git clone https://github.com/ruilisi/opc
 cd opc
 bun install
+```
+
+### 配置
+
+```bash
 cp .env.local.example .env.local
+```
+
+编辑 `.env.local`：
+
+```env
+# 数据库
+DATABASE_URL="postgresql://user:password@localhost:5432/opc"
+
+# JWT 签名密钥（任意随机字符串）
+JWT_SECRET="your-secret-key"
+
+# Lingti OAuth（自部署或使用 game.lingti.com）
+LINGTI_OAUTH_CLIENT_ID="your-client-id"
+LINGTI_OAUTH_CLIENT_SECRET="your-client-secret"
+LINGTI_OAUTH_REDIRECT_URI="http://localhost:3000/oauth/callback"
+
+# 七牛云（可选，也可在 Settings 页面配置）
+QINIU_ACCESS_KEY=""
+QINIU_SECRET_KEY=""
+QINIU_BUCKET=""
+QINIU_DOMAIN=""
+QINIU_FOLDER=""
+```
+
+### 启动
+
+```bash
+# 初始化数据库
 bunx prisma migrate dev --name init
+
+# 启动开发服务器
 bun run dev
 ```
 
-技术栈：Next.js 16 · TypeScript · Tailwind v4 · Prisma 7 · PostgreSQL · shadcn/ui
+访问 `http://localhost:3000`。
+
+### 生产部署
+
+```bash
+bun run build
+bun run start
+```
+
+OPC 是无状态 Next.js 应用，可部署至任何支持 Node.js 的平台（Vercel、Railway、自托管 Docker 等）。
+
+---
+
+## 技术栈
+
+| 层级 | 技术 |
+|------|------|
+| 框架 | Next.js 16 (App Router) |
+| 语言 | TypeScript |
+| 样式 | Tailwind CSS v4 |
+| 组件库 | shadcn/ui (base-ui) |
+| ORM | Prisma 7 + `@prisma/adapter-pg` |
+| 数据库 | PostgreSQL |
+| 认证 | jose (JWT) + Lingti OAuth |
+| 实时 | Server-Sent Events（内置，零依赖） |
+| 拖拽 | @hello-pangea/dnd |
+| Markdown 编辑器 | @uiw/react-md-editor |
+| 文件存储 | 七牛云 SDK |
+| 包管理 | Bun |
+
+---
+
+## 项目结构
+
+```
+src/
+├── app/
+│   ├── api/                    # API 路由
+│   │   ├── agent/              # AI Agent API
+│   │   ├── boards/             # 看板、列、标签、成员、Token、SSE
+│   │   ├── tasks/              # 任务、清单、附件、评论、标签、成员
+│   │   ├── orgs/               # 组织、成员、邀请、文件库、Sentry、SSE
+│   │   ├── settings/           # 七牛、Sentry 配置
+│   │   └── upload/             # 通用上传
+│   ├── boards/                 # 看板页面
+│   ├── orgs/[orgId]/
+│   │   ├── files/              # 文件库页面
+│   │   └── sentry/             # Sentry 视图
+│   └── settings/               # 设置页面
+├── components/
+│   ├── board/                  # 看板组件（KanbanBoard, KanbanColumn, TaskDetailDialog…）
+│   ├── files/                  # 文件库组件（FolderTree, FileIcon, FilePreviewModal…）
+│   ├── shared/                 # 通用组件（AppShell, UserAvatar…）
+│   └── ui/                     # shadcn/ui 基础组件
+├── lib/
+│   ├── auth.ts                 # JWT 工具
+│   ├── hooks/                  # useBoardSubscription, useOrgFileSubscription
+│   ├── i18n.tsx                # 中/英双语
+│   ├── prisma.ts               # Prisma 单例
+│   ├── qiniu.ts                # 七牛上传/删除
+│   ├── realtime.ts             # SSE pub/sub（EventEmitter）
+│   └── session.ts              # Cookie 会话
+├── proxy.ts                    # 路由鉴权中间件
+└── types/                      # 共享 TypeScript 类型
+```
+
+---
+
+## 贡献
+
+OPC 完全开源，欢迎任何形式的贡献。
+
+- **提 Issue**：[github.com/ruilisi/opc/issues](https://github.com/ruilisi/opc/issues)
+- **提 PR**：Fork → 新建分支 → 修改 → PR
+- **分享**：把 OPC 介绍给有需要的朋友
+
+---
+
+## 路线图
+
+- [ ] AI 自动拆解复杂任务，生成周报
+- [ ] 时间线 (Gantt) 视图
+- [ ] 移动端优化
+- [ ] 多语言扩展
 
 ---
 
@@ -239,6 +343,6 @@ bun run dev
 
 这个工具不是为了让你工作更多，而是为了让你能更有尊严、更从容地去创造价值。
 
-如果你觉得它帮到了你，请给它一个 Star，或者分享给同样在路上的同路人。
+如果它帮到了你，请给它一个 Star，或者分享给同样在路上的同路人。
 
 **License: MIT**
