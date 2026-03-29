@@ -233,16 +233,23 @@ Channel key: `org-files:{orgId}`
 **SSE event types and payloads:**
 
 ```ts
-{ type: 'file.uploaded',  payload: OrgFile & { tags: OrgFileTagAssignment[] } }
-{ type: 'file.renamed',   payload: { fileId: string, name: string } }
-{ type: 'file.moved',     payload: { fileId: string, folderId: string | null } }
-{ type: 'file.deleted',   payload: { fileId: string } }
-{ type: 'folder.created', payload: OrgFolder }
-{ type: 'folder.renamed', payload: { folderId: string, name: string } }
-{ type: 'folder.deleted', payload: { folderId: string } }
-{ type: 'tag.created',    payload: OrgFileTag }
-{ type: 'tag.deleted',    payload: { tagId: string } }
+{ type: 'file.uploaded',    payload: OrgFile & { uploader: { id, name, avatarUrl }, tags: Array<{ tag: OrgFileTag }> } }
+{ type: 'file.renamed',     payload: { fileId: string, name: string } }
+{ type: 'file.moved',       payload: { fileId: string, folderId: string | null } }
+{ type: 'file.deleted',     payload: { fileId: string } }
+{ type: 'file.tag_added',   payload: { fileId: string, tag: OrgFileTag } }
+{ type: 'file.tag_removed', payload: { fileId: string, tagId: string } }
+{ type: 'folder.created',   payload: OrgFolder }
+{ type: 'folder.renamed',   payload: { folderId: string, name: string } }
+{ type: 'folder.deleted',   payload: { folderId: string } }
+{ type: 'tag.created',      payload: OrgFileTag }
+{ type: 'tag.updated',      payload: OrgFileTag }
+{ type: 'tag.deleted',       payload: { tagId: string } }
 ```
+
+**Tag assignment endpoints response:**
+- `POST /files/[fileId]/tags/[tagId]` → returns `{ tag: OrgFileTag }` and emits `file.tag_added`
+- `DELETE /files/[fileId]/tags/[tagId]` → returns `{ ok: true }` and emits `file.tag_removed`
 
 Client hook `useOrgFileSubscription(orgId, handlers)` — same `handlersRef` pattern as `useBoardSubscription` (no reconnect on handler change). `EventSource` reconnects natively on network drop — no additional backoff logic needed.
 
