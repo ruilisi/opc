@@ -76,6 +76,12 @@ export async function DELETE(
 
   const allIds = await getDescendantIds(folderId)
 
+  // Fetch affected file IDs before deletion
+  const affectedFiles = await prisma.orgFile.findMany({
+    where: { folderId: { in: allIds } },
+    select: { id: true },
+  })
+
   await prisma.$transaction([
     // Move files to root
     prisma.orgFile.updateMany({ where: { folderId: { in: allIds } }, data: { folderId: null } }),
@@ -84,5 +90,9 @@ export async function DELETE(
   ])
 
   emitOrgFileEvent(orgId, { type: 'folder.deleted', payload: { folderId } })
+  // Emit file.moved for all affected files
+  for (const f of affectedFiles) {
+    emitOrgFileEvent(orgId, { type: 'file.moved', payload: { fileId: f.id, folderId: null } })
+  }
   return NextResponse.json({ ok: true })
 }
