@@ -33,7 +33,9 @@ export async function GET(
   const order = (searchParams.get('order') ?? 'desc') as 'asc' | 'desc'
 
   const where: Record<string, unknown> = { orgId }
-  if (folderId && folderId !== 'all') where.folderId = folderId === 'root' ? null : folderId
+  if (!search) {
+    if (folderId && folderId !== 'all') where.folderId = folderId === 'root' ? null : folderId
+  }
   if (search) where.name = { contains: search, mode: 'insensitive' }
   if (tagIds.length > 0) {
     where.tags = { some: { tagId: { in: tagIds } } }
