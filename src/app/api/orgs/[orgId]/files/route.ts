@@ -75,6 +75,38 @@ export async function POST(
   if (!member) return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 })
   if (member.role === 'viewer') return NextResponse.json({ error: 'Permission denied', code: 'PERMISSION_DENIED' }, { status: 403 })
 
+  const contentType = request.headers.get('content-type') ?? ''
+
+  // Path A: JSON metadata after client-side direct upload to Qiniu
+  if (contentType.includes('application/json')) {
+    const body = await request.json()
+    const { url, key, name, size, mimeType, folderId: folderIdRaw } = body
+    if (!url || !key || !name || size == null) {
+      return NextResponse.json({ error: 'url, key, name, size required' }, { status: 400 })
+    }
+    const folderId = folderIdRaw || null
+    if (folderId) {
+      const folder = await prisma.orgFolder.findUnique({ where: { id: folderId }, select: { orgId: true } })
+      if (!folder || folder.orgId !== orgId) return NextResponse.json({ error: 'Folder not found' }, { status: 404 })
+    }
+    const orgFile = await prisma.orgFile.create({
+      data: {
+        name,
+        url,
+        key,
+        size,
+        mimeType: (mimeType as string | undefined)?.toLowerCase() || 'application/octet-stream',
+        orgId,
+        folderId,
+        uploaderId: userId,
+      },
+      include: fileInclude,
+    })
+    emitOrgFileEvent(orgId, { type: 'file.uploaded', payload: orgFile })
+    return NextResponse.json(orgFile, { status: 201 })
+  }
+
+  // Path B: Legacy server-side upload (FormData) — kept for small files / backward compat
   const formData = await request.formData()
   const file = formData.get('file') as File | null
   if (!file) return NextResponse.json({ error: 'file required' }, { status: 400 })
@@ -83,7 +115,6 @@ export async function POST(
   const folderIdRaw = formData.get('folderId') as string | null
   const folderId = folderIdRaw || null
 
-  // Validate folder belongs to org
   if (folderId) {
     const folder = await prisma.orgFolder.findUnique({ where: { id: folderId }, select: { orgId: true } })
     if (!folder || folder.orgId !== orgId) return NextResponse.json({ error: 'Folder not found' }, { status: 404 })

@@ -97,16 +97,47 @@ export default function OrgFilesPage() {
     return () => clearTimeout(timer)
   }, [searchInput])
 
-  // Upload handler
+  // Upload handler — direct browser-to-Qiniu upload, no file data through our server
   async function handleUpload(fileToUpload: File) {
     if (fileToUpload.size > FILE_SIZE_LIMIT) { toast.error(t('files_too_large')); return }
-    const formData = new FormData()
-    formData.append('file', fileToUpload)
-    if (selectedFolderId) formData.append('folderId', selectedFolderId)
     try {
-      const res = await fetch(`/api/orgs/${orgId}/files`, { method: 'POST', body: formData })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
+      // 1. Get upload token from server
+      const tokenRes = await fetch(
+        `/api/orgs/${orgId}/files/upload-token?filename=${encodeURIComponent(fileToUpload.name)}`
+      )
+      if (!tokenRes.ok) {
+        const data = await tokenRes.json().catch(() => ({}))
+        toast.error(data.error ?? t('files_upload_error'))
+        return
+      }
+      const { token, key, url } = await tokenRes.json()
+
+      // 2. Upload directly to Qiniu
+      const form = new FormData()
+      form.append('token', token)
+      form.append('key', key)
+      form.append('file', fileToUpload)
+      const qiniuRes = await fetch('https://up.qiniup.com', { method: 'POST', body: form })
+      if (!qiniuRes.ok) {
+        toast.error(t('files_upload_error'))
+        return
+      }
+
+      // 3. Register metadata with our server
+      const metaRes = await fetch(`/api/orgs/${orgId}/files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url,
+          key,
+          name: fileToUpload.name,
+          size: fileToUpload.size,
+          mimeType: fileToUpload.type || 'application/octet-stream',
+          folderId: selectedFolderId,
+        }),
+      })
+      if (!metaRes.ok) {
+        const data = await metaRes.json().catch(() => ({}))
         toast.error(data.error ?? t('files_upload_error'))
       }
     } catch {
