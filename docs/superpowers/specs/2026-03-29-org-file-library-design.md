@@ -112,7 +112,11 @@ model Organization {
 
 ### Schema change to OrgMember
 
-No structural change — `role String @default("member")` stays as-is. New valid values: `"owner"`, `"admin"`, `"member"`, `"viewer"`. Existing members keep `"member"`.
+No structural change — `role String @default("member")` stays as-is. New valid values: `"owner"`, `"admin"`, `"member"`, `"viewer"`. Existing `"owner"` and `"member"` records are unchanged — no migration needed. `"admin"` and `"viewer"` are new roles assignable going forward via org member management UI.
+
+### Folder name uniqueness
+
+Folder names are **not** required to be unique within a parent (like a filesystem where duplicates are allowed). No DB unique constraint. The UI may warn on duplicate names but will not block creation.
 
 ### OnDelete semantics
 
@@ -139,14 +143,35 @@ All routes are under `/api/orgs/[orgId]/`. Auth via `x-user-id` header (injected
 | DELETE | `/files/[fileId]/tags/[tagId]` | Remove tag from file | member (own) / admin (any) |
 
 **GET /files query parameters:**
-- `folderId` — filter by folder (omit for root, `all` for all files across folders)
-- `search` — substring match on filename, case-insensitive; applies across all folders regardless of `folderId`
-- `tagId` — can be repeated; multiple `tagId` params are AND-filtered
+- `folderId` — filter by folder (omit = root, `all` = all files across all folders)
+- `search` — substring match on filename, case-insensitive; ignores `folderId` when present
+- `tagId` — can be repeated; multiple values = AND filter (file must have all specified tags)
+- `sort` — `name | size | createdAt` (default: `createdAt`)
+- `order` — `asc | desc` (default: `desc`)
+
+**GET /files response:**
+```ts
+{ files: Array<OrgFile & { uploader: { id, name, avatarUrl }, tags: Array<{ tag: OrgFileTag }> }> }
+```
+No pagination — file libraries are expected to be manageable in size. Add pagination if needed in a future iteration.
+
+**POST /files response:** same `OrgFile & { uploader, tags }` shape as GET items.
+
+**GET /folders response:**
+```ts
+OrgFolder[]  // flat list sorted by name; client builds tree from parentId
+```
+No depth limit enforced. Ordering: alphabetical by name within each parent level.
 
 **POST /files:**
 - `mimeType` captured from `file.type` (File object in FormData)
 - Server rejects files > 100 MB with `413 Payload Too Large`
 - Qiniu key generated via existing MD5-dedup logic in `src/lib/qiniu.ts`
+
+**PATCH /files/[fileId] validation:**
+- `folderId` (move): target folder must exist in the same org; null is valid (moves to root)
+- Only the file's `uploaderId` matters for "own" check — folder creator is irrelevant
+- A member can move their own file to any folder regardless of who created that folder
 
 **DELETE /files/[fileId]:**
 1. Fetch file record (including `key`, `orgId`)
@@ -179,7 +204,10 @@ All routes are under `/api/orgs/[orgId]/`. Auth via `x-user-id` header (injected
 |---|---|---|---|
 | GET | `/file-tags` | List all org tags | viewer |
 | POST | `/file-tags` | Create tag (`name`, `color`) | admin |
+| PATCH | `/file-tags/[tagId]` | Update tag name/color | admin |
 | DELETE | `/file-tags/[tagId]` | Delete tag (removes all assignments) | admin |
+
+**Tag color:** must be a valid `#RRGGBB` hex string. Server validates and returns 400 if invalid. Browsers always return lowercase `image/png` etc. — server normalizes `mimeType` to lowercase on upload.
 
 ### Realtime SSE
 
@@ -216,7 +244,7 @@ Channel key: `org-files:{orgId}`
 { type: 'tag.deleted',    payload: { tagId: string } }
 ```
 
-Client hook `useOrgFileSubscription(orgId, handlers)` — same `handlersRef` pattern as `useBoardSubscription` (no reconnect on handler change).
+Client hook `useOrgFileSubscription(orgId, handlers)` — same `handlersRef` pattern as `useBoardSubscription` (no reconnect on handler change). `EventSource` reconnects natively on network drop — no additional backoff logic needed.
 
 ---
 
