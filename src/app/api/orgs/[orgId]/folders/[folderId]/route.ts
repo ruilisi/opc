@@ -27,6 +27,10 @@ export async function PATCH(
 
   const { name, parentId } = await request.json()
 
+  if (name !== undefined && !String(name).trim()) {
+    return NextResponse.json({ error: 'name cannot be empty' }, { status: 400 })
+  }
+
   if (parentId !== undefined && parentId !== null) {
     const parent = await prisma.orgFolder.findUnique({ where: { id: parentId }, select: { orgId: true } })
     if (!parent || parent.orgId !== orgId) return NextResponse.json({ error: 'Parent folder not found' }, { status: 404 })
