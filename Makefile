@@ -7,7 +7,7 @@ dev-https:
 	bunx next dev --experimental-https
 
 dev-online:
-	REMOTE_API_URL=https://opc.ruilisi.com bun run dev
+	NEXT_PUBLIC_API_BASE=https://opc.ruilisi.com bun run dev
 
 # Run pending migrations against the database pointed to by DATABASE_URL.
 # Usage:
