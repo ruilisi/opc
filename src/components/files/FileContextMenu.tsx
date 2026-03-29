@@ -5,6 +5,14 @@ import { Link2, Pencil, FolderInput, Tag, Download, Trash2 } from 'lucide-react'
 import type { OrgFile } from '@/types'
 import { useT } from '@/lib/i18n'
 
+type MenuItem = {
+  icon: React.ElementType
+  label: string
+  action: () => void
+  show: boolean
+  danger?: boolean
+} | null
+
 interface Props {
   file: OrgFile
   x: number
@@ -34,7 +42,7 @@ export default function FileContextMenu({ file, x, y, canEdit, onClose, onRename
     onClose()
   }
 
-  const items = [
+  const items: MenuItem[] = [
     { icon: Link2, label: t('files_ctx_copy_link'), action: copyLink, show: true },
     { icon: Pencil, label: t('files_ctx_rename'), action: () => { onRename(); onClose() }, show: canEdit },
     { icon: FolderInput, label: t('files_ctx_move'), action: () => { onMove(); onClose() }, show: canEdit },
@@ -54,12 +62,12 @@ export default function FileContextMenu({ file, x, y, canEdit, onClose, onRename
     >
       {items.map((item, i) =>
         item === null ? (
-          <div key={i} className="my-1 border-t" />
+          <div key={`separator-${i}`} className="my-1 border-t" />
         ) : item.show ? (
           <button
             key={item.label}
             onClick={item.action}
-            className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent ${(item as {danger?: boolean}).danger ? 'text-destructive hover:text-destructive' : ''}`}
+            className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-sm hover:bg-accent ${item.danger ? 'text-destructive hover:text-destructive' : ''}`}
           >
             <item.icon size={14} />
             {item.label}
