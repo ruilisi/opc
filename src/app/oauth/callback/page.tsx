@@ -16,7 +16,7 @@ function OAuthCallback() {
     const returnPath = state ? decodeURIComponent(state) : '/boards'
 
     if (!code) {
-      router.replace('/login')
+      router.replace(returnPath)
       return
     }
 
@@ -28,11 +28,8 @@ function OAuthCallback() {
         redirectUri: window.location.origin + '/oauth/callback',
       }),
     })
-      .then((res) => {
-        if (res.ok) router.replace(returnPath)
-        else router.replace('/login')
-      })
-      .catch(() => router.replace('/login'))
+      .then(() => router.replace(returnPath))
+      .catch(() => router.replace(returnPath))
   }, [searchParams, router])
 
   return (

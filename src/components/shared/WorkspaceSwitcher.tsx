@@ -37,7 +37,6 @@ export default function WorkspaceSwitcher() {
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/login')
     toast.success('Logged out')
   }
 
