@@ -88,6 +88,7 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    if (process.env.NODE_ENV !== 'production') return NextResponse.next()
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -96,6 +97,7 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    if (process.env.NODE_ENV !== 'production') return NextResponse.next()
     const response = NextResponse.redirect(new URL('/login', request.url))
     response.cookies.delete(COOKIE_NAME)
     return response
