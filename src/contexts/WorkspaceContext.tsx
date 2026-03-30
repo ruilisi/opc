@@ -44,10 +44,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/orgs').then((r) => r.json()),
-      fetch('/api/auth/me').then((r) => r.json()),
+      fetch('/api/orgs').then((r) => r.ok ? r.json() : []),
+      fetch('/api/auth/me').then((r) => r.ok ? r.json() : null),
     ]).then(([orgsData, userData]) => {
-      const list: WorkspaceOrg[] = orgsData.map((o: WorkspaceOrg & { members?: { role: string }[] }) => ({
+      const list: WorkspaceOrg[] = (Array.isArray(orgsData) ? orgsData : []).map((o: WorkspaceOrg & { members?: { role: string }[] }) => ({
         id: o.id,
         name: o.name,
         slug: o.slug,

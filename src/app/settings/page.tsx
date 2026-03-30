@@ -230,6 +230,7 @@ function ApiTokenSettings() {
       if (!res.ok) throw new Error('Failed')
       const { token } = await res.json()
       setNewToken(token)
+      setShowToken(true)
       setName('')
       fetch('/api/auth/token').then((r) => r.json()).then((data) => setTokens(Array.isArray(data) ? data : []))
     } catch { toast.error(t('settings_token_error')) }
@@ -250,16 +251,16 @@ function ApiTokenSettings() {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {newToken && (
-          <div className="rounded-lg border border-green-500 bg-green-50 p-3">
-            <p className="text-sm font-medium text-green-800 mb-2">{t('settings_token_new_label')}</p>
+          <div className="rounded-lg border border-green-500 bg-green-500/10 p-3 flex flex-col gap-2">
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">{t('settings_token_new_label')}</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded bg-white p-2 text-xs font-mono break-all">
+              <code className="flex-1 min-w-0 rounded bg-muted p-2 text-xs font-mono break-all">
                 {showToken ? newToken : '•'.repeat(Math.min(newToken.length, 40))}
               </code>
               <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => setShowToken(!showToken)}>
                 {showToken ? <EyeOff size={14} /> : <Eye size={14} />}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(newToken); toast.success(t('settings_token_copied')) }}>{t('settings_token_copy')}</Button>
+              <Button variant="outline" size="sm" className="shrink-0" onClick={() => { navigator.clipboard.writeText(newToken); toast.success(t('settings_token_copied')) }}>{t('settings_token_copy')}</Button>
             </div>
           </div>
         )}
