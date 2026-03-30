@@ -7,6 +7,9 @@ export function ApiBaseProvider({ children }: { children: React.ReactNode }) {
     const original = window.fetch
     window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
       return original(input, init).then((res) => {
+        if (res.status === 401 && !window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login'
+        }
         return res
       })
     }

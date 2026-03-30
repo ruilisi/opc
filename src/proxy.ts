@@ -88,7 +88,7 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    return NextResponse.next()
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   const session = await verifySession(sessionToken)
@@ -96,7 +96,9 @@ export async function proxy(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    return NextResponse.next()
+    const response = NextResponse.redirect(new URL('/login', request.url))
+    response.cookies.delete(COOKIE_NAME)
+    return response
   }
 
   const response = NextResponse.next()

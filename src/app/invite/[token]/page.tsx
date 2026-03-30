@@ -30,7 +30,7 @@ export default function InvitePage() {
     try {
       const res = await fetch(`/api/invites/${token}/accept`, { method: 'POST' })
       if (res.status === 401) {
-        toast.error('Please log in to accept this invite')
+        router.push(`/login?return=/invite/${token}`)
         return
       }
       if (!res.ok) {
