@@ -79,7 +79,7 @@ function SentrySettings() {
   const { t, dict } = useT()
 
   useEffect(() => {
-    fetch('/api/settings/sentry').then((r) => r.json()).then(setConfigs)
+    fetch('/api/settings/sentry').then((r) => r.ok ? r.json() : []).then((d) => setConfigs(Array.isArray(d) ? d : []))
   }, [])
 
   function resetForm() {
