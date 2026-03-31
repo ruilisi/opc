@@ -23,6 +23,7 @@ interface BoardForm {
   title: string
   description: string | null
   status: string
+  slug: string | null
   columnId: string
   column: { id: string; name: string }
   fields: Array<{ id: string; label: string; type: string; required: boolean; options: string | null; order: number }>
@@ -52,6 +53,9 @@ export default function FormBuilderPage() {
   const [columnId, setColumnId] = useState('')
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [slug, setSlug] = useState('')
+  const [slugSaved, setSlugSaved] = useState('')
+  const [copiedShort, setCopiedShort] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -64,6 +68,8 @@ export default function FormBuilderPage() {
         setDescription(f.description ?? '')
         setStatus(f.status)
         setColumnId(f.columnId)
+        setSlug(f.slug ?? '')
+        setSlugSaved(f.slug ?? '')
         setFields(f.fields.map((ff: BoardForm['fields'][0]) => ({
           id: ff.id,
           label: ff.label,
@@ -84,6 +90,21 @@ export default function FormBuilderPage() {
       body: JSON.stringify(patch),
     })
   }, [boardId, formId])
+
+  async function saveSlug() {
+    const res = await fetch(`/api/boards/${boardId}/forms/${formId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: slug.trim() || null }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      const finalSlug = updated.slug ?? ''
+      setSlug(finalSlug)
+      setSlugSaved(finalSlug)
+      if (finalSlug !== slug.trim()) toast.info(`Slug taken — saved as "${finalSlug}"`)
+    }
+  }
 
   const saveFields = useCallback(async (fs: FormField[]) => {
     if (saveTimeout) clearTimeout(saveTimeout)
@@ -289,6 +310,36 @@ export default function FormBuilderPage() {
                   {copied ? <Check size={12} /> : <Copy size={12} />}
                 </button>
               </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Short Link</label>
+              <div className="flex gap-1">
+                <Input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                  onBlur={saveSlug}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.currentTarget.blur() } }}
+                  placeholder="my-form"
+                  className="h-7 text-xs flex-1"
+                />
+              </div>
+              {slugSaved && (
+                <div className="flex items-center gap-1.5 rounded-md border px-2 py-1.5 bg-muted/30">
+                  <code className="text-xs flex-1 truncate text-muted-foreground">/f/{slugSaved}</code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/f/${slugSaved}`)
+                      setCopiedShort(true)
+                      toast.success('Short link copied!')
+                      setTimeout(() => setCopiedShort(false), 2000)
+                    }}
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                  >
+                    {copiedShort ? <Check size={12} /> : <Copy size={12} />}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

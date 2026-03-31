@@ -306,6 +306,7 @@ model BoardForm {
   title       String
   description String?
   status      String           @default("open")
+  slug        String?          @unique
   fields      FormField[]
   submissions FormSubmission[]
   createdAt   DateTime         @default(now())
