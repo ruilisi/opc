@@ -135,6 +135,7 @@ model Board {
   members     BoardMember[]
   labels      Label[]
   boardTokens BoardToken[]
+  forms       BoardForm[]
 }
 
 model BoardToken {
@@ -157,35 +158,37 @@ model BoardMember {
 }
 
 model Column {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   name      String
   order     Int
   boardId   String
-  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  board     Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
   tasks     Task[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  forms     BoardForm[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
 
 model Task {
-  id          String        @id @default(cuid())
-  title       String
-  content     String?
-  points      Int?
-  order       Float
-  aiModelTag  String?
-  dueDate     DateTime?
-  cover       String?
-  folderPath  String?
-  columnId    String
-  column      Column        @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  members     TaskMember[]
-  labels      TaskLabel[]
-  checklist   ChecklistItem[]
-  attachments Attachment[]
-  comments    TaskComment[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String          @id @default(cuid())
+  title          String
+  content        String?
+  points         Int?
+  order          Float
+  aiModelTag     String?
+  dueDate        DateTime?
+  cover          String?
+  folderPath     String?
+  columnId       String
+  column         Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  members        TaskMember[]
+  labels         TaskLabel[]
+  checklist      ChecklistItem[]
+  attachments    Attachment[]
+  comments       TaskComment[]
+  formSubmission FormSubmission?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model TaskMember {
@@ -292,4 +295,40 @@ model ApiToken {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+}
+
+model BoardForm {
+  id          String           @id @default(cuid())
+  boardId     String
+  board       Board            @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  columnId    String
+  column      Column           @relation(fields: [columnId], references: [id])
+  title       String
+  description String?
+  status      String           @default("open")
+  fields      FormField[]
+  submissions FormSubmission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model FormField {
+  id       String    @id @default(cuid())
+  formId   String
+  form     BoardForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  label    String
+  type     String
+  required Boolean   @default(false)
+  options  String?
+  order    Int
+}
+
+model FormSubmission {
+  id        String    @id @default(cuid())
+  formId    String
+  form      BoardForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  taskId    String?   @unique
+  task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  data      Json
+  createdAt DateTime  @default(now())
 }

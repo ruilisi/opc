@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ boardId: string }> }
+) {
+  const userId = request.headers.get('x-user-id')
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { boardId } = await params
+  const columns = await prisma.column.findMany({ where: { boardId }, orderBy: { order: 'asc' }, select: { id: true, name: true } })
+  return NextResponse.json(columns)
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ boardId: string }> }

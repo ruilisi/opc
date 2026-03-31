@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { KeyRound, FolderOpen, Check, X } from 'lucide-react'
+import { KeyRound, FolderOpen, Check, X, ClipboardList } from 'lucide-react'
 import BoardTokensDialog from './BoardTokensDialog'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { useT } from '@/lib/i18n'
 
@@ -85,6 +86,12 @@ export default function BoardHeader({ boardId, name, description, isOwner, baseP
                   )}
                 </Button>
               )}
+              <Link href={`/boards/${boardId}/forms`}>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+                  <ClipboardList size={14} />
+                  Forms
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"

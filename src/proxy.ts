@@ -3,7 +3,7 @@ import { verifySession, COOKIE_NAME } from '@/lib/auth'
 import { createHash } from 'crypto'
 import { prisma } from '@/lib/prisma'
 
-const PUBLIC_PATHS = ['/login', '/oauth/callback', '/api/auth/login', '/api/auth/callback', '/api/auth/logout', '/api/auth/oauth-token', '/invite/', '/api/invites/']
+const PUBLIC_PATHS = ['/login', '/oauth/callback', '/api/auth/login', '/api/auth/callback', '/api/auth/logout', '/api/auth/oauth-token', '/invite/', '/api/invites/', '/forms/', '/api/forms/']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
