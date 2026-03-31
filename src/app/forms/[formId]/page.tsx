@@ -122,6 +122,16 @@ export default function PublicFormPage() {
                         <option key={opt} value={opt}>{opt}</option>
                       ))}
                     </select>
+                  ) : field.type === 'phone' ? (
+                    <Input
+                      type="tel"
+                      value={values[field.id] ?? ''}
+                      onChange={(e) => setValues((v) => ({ ...v, [field.id]: e.target.value }))}
+                      required={field.required}
+                      placeholder="1XXXXXXXXXX"
+                      pattern="^1(3\d|4[5-9]|5[0-35-9]|6[2567]|7[0-8]|8\d|9[0-35-9])\d{8}$"
+                      title="请输入有效的中国大陆手机号"
+                    />
                   ) : (
                     <Input
                       type={field.type}

@@ -30,7 +30,7 @@ interface BoardForm {
 
 interface Column { id: string; name: string }
 
-const FIELD_TYPES = ['text', 'textarea', 'email', 'number', 'date', 'select']
+const FIELD_TYPES = ['text', 'textarea', 'email', 'number', 'date', 'select', 'phone']
 
 const STATUS_OPTIONS = [
   { value: 'open', label: 'Open (anyone with link)' },
