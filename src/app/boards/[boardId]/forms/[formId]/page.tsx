@@ -320,8 +320,8 @@ export default function FormBuilderPage() {
                   onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
                   onBlur={saveSlug}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.currentTarget.blur() } }}
-                  placeholder="my-form"
-                  className="h-7 text-xs flex-1"
+                  placeholder="ab3x9"
+                  className="h-7 text-xs flex-1 font-mono"
                 />
               </div>
               {slugSaved && (
