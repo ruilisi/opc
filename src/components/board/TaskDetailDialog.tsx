@@ -251,17 +251,20 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
   async function toggleMember(user: BoardMemberUser) {
     if (!task) return
     const isMember = members.some((m) => m.user.id === user.id)
+    let nextMembers: TaskMember[]
     if (isMember) {
       await fetch(`/api/tasks/${task.id}/members/${user.id}`, { method: 'DELETE' })
-      setMembers((prev) => prev.filter((m) => m.user.id !== user.id))
+      nextMembers = members.filter((m) => m.user.id !== user.id)
     } else {
       await fetch(`/api/tasks/${task.id}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
       })
-      setMembers((prev) => [...prev, { user }])
+      nextMembers = [...members, { user }]
     }
+    setMembers(nextMembers)
+    onUpdated({ ...task, members: nextMembers, labels, checklist, attachments })
   }
 
   async function toggleLabel(label: BoardLabel) {
