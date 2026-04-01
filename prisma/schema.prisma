@@ -25,6 +25,8 @@ model User {
   orgMembers     OrgMember[]
   uploadedFiles  OrgFile[]   @relation("FileUploader")
   createdFolders OrgFolder[] @relation("FolderCreator")
+  createdDocs      Doc[]           @relation("DocCreator")
+  docPermissions   DocPermission[] @relation("DocPermissionUser")
 }
 
 model Organization {
@@ -41,6 +43,7 @@ model Organization {
   folders     OrgFolder[]
   files       OrgFile[]
   fileTags    OrgFileTag[]
+  docs        Doc[]
 }
 
 model OrgMember {
@@ -332,4 +335,30 @@ model FormSubmission {
   task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
   data      Json
   createdAt DateTime  @default(now())
+}
+
+model Doc {
+  id           String          @id @default(cuid())
+  title        String
+  content      String?
+  ydocState    Bytes?
+  orgId        String
+  org          Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdById  String
+  createdBy    User            @relation("DocCreator", fields: [createdById], references: [id])
+  slug         String?         @unique
+  publicAccess String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  permissions  DocPermission[]
+}
+
+model DocPermission {
+  id     String @id @default(cuid())
+  docId  String
+  doc    Doc    @relation(fields: [docId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("DocPermissionUser", fields: [userId], references: [id])
+  role   String
+  @@unique([docId, userId])
 }
