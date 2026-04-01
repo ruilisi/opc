@@ -1,7 +1,9 @@
 .PHONY: dev dev-online migrate migrate-create
 
 dev:
-	env -u REMOTE_API_URL bun run dev
+	env -u REMOTE_API_URL concurrently \
+	  "bun run dev" \
+	  "npx ts-node --project server/tsconfig.json server/hocuspocus.ts"
 
 dev-https:
 	bunx next dev --experimental-https
