@@ -20,33 +20,28 @@ interface DocEditorProps {
 }
 
 export default function DocEditor({ docId, token, readOnly = false, hocuspocusUrl }: DocEditorProps) {
-  const ydocRef = useRef<Y.Doc | null>(null)
+  // Initialize ydoc once — stable across renders
+  const ydocRef = useRef<Y.Doc>(new Y.Doc())
   const providerRef = useRef<HocuspocusProvider | null>(null)
   const [connected, setConnected] = useState(false)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [showMarkdown, setShowMarkdown] = useState(false)
   const [markdownText, setMarkdownText] = useState('')
-  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const ydoc = new Y.Doc()
-    ydocRef.current = ydoc
-
     const provider = new HocuspocusProvider({
       url: hocuspocusUrl,
       name: docId,
-      document: ydoc,
+      document: ydocRef.current,
       token,
       onConnect: () => setConnected(true),
       onDisconnect: () => setConnected(false),
     })
     providerRef.current = provider
-    setReady(true)
 
     return () => {
       provider.destroy()
-      ydoc.destroy()
-      setReady(false)
+      providerRef.current = null
     }
   }, [docId, token, hocuspocusUrl])
 
@@ -55,13 +50,11 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
     editable: !readOnly,
     extensions: [
       StarterKit.configure({ undoRedo: false }),
-      ...(ready && ydocRef.current && providerRef.current ? [
-        Collaboration.configure({ document: ydocRef.current }),
-        CollaborationCursor.configure({ provider: providerRef.current }),
-      ] : []),
+      Collaboration.configure({ document: ydocRef.current }),
+      CollaborationCursor.configure({ provider: providerRef }),
       Image,
     ],
-  }, [ready])
+  })
 
   async function uploadImage(file: File): Promise<string> {
     const formData = new FormData()
