@@ -51,6 +51,7 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
   }, [docId, token, hocuspocusUrl])
 
   const editor = useEditor({
+    immediatelyRender: false,
     editable: !readOnly,
     extensions: [
       StarterKit.configure({ undoRedo: false }),
