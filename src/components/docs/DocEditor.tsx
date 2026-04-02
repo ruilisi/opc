@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
-import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import Image from '@tiptap/extension-image'
 import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
@@ -51,7 +50,6 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: ydocRef.current }),
-      CollaborationCursor.configure({ provider: providerRef }),
       Image,
     ],
   })
