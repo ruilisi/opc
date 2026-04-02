@@ -1,14 +1,13 @@
 import { Server } from '@hocuspocus/server'
 import { Database } from '@hocuspocus/extension-database'
-import { Client } from 'pg'
+import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../src/generated/prisma/client'
 import { verifySession } from '../src/lib/auth'
 
-// Inline Prisma client for the server process
-const connection = new Client({ connectionString: process.env.DATABASE_URL })
-connection.connect()
-const adapter = new PrismaPg(connection)
+// Use a Pool so connections are managed automatically
+const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter } as never)
 
 function randomColor(): string {
