@@ -3,7 +3,7 @@
 dev:
 	env -u REMOTE_API_URL bunx concurrently \
 	  "bun run dev" \
-	  "bunx ts-node --project server/tsconfig.json server/hocuspocus.ts"
+	  "bunx tsx --env-file=.env.local server/hocuspocus.ts"
 
 dev-https:
 	bunx next dev --experimental-https
