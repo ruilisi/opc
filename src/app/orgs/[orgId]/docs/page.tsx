@@ -6,7 +6,8 @@ import AppShell from '@/components/shared/AppShell'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Plus, FileText, Search } from 'lucide-react'
+import { Plus, FileText, Search, Trash2 } from 'lucide-react'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 interface Doc {
   id: string
@@ -25,12 +26,17 @@ export default function DocsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [creating, setCreating] = useState(false)
+  const [myUserId, setMyUserId] = useState<string | null>(null)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   useEffect(() => {
     fetch(`/api/orgs/${orgId}/docs`)
       .then((r) => r.ok ? r.json() : [])
       .then((d) => setDocs(Array.isArray(d) ? d : []))
       .finally(() => setLoading(false))
+    fetch('/api/auth/me')
+      .then((r) => r.ok ? r.json() : null)
+      .then((u) => { if (u?.id) setMyUserId(u.id) })
   }, [orgId])
 
   async function createDoc() {
@@ -47,6 +53,18 @@ export default function DocsPage() {
     } catch {
       toast.error('Failed to create doc')
       setCreating(false)
+    }
+  }
+
+  async function deleteDoc(e: React.MouseEvent, doc: Doc) {
+    e.stopPropagation()
+    if (!await confirm(`删除文档`, `确认删除 "${doc.title}"？此操作不可撤销。`)) return
+    const res = await fetch(`/api/orgs/${orgId}/docs/${doc.id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setDocs((prev) => prev.filter((d) => d.id !== doc.id))
+      toast.success('Doc deleted')
+    } else {
+      toast.error('Failed to delete doc')
     }
   }
 
@@ -76,10 +94,10 @@ export default function DocsPage() {
           ) : (
             <div className="flex flex-col gap-2 max-w-2xl">
               {filtered.map((doc) => (
-                <button
+                <div
                   key={doc.id}
                   onClick={() => router.push(`/orgs/${orgId}/docs/${doc.id}`)}
-                  className="flex items-center gap-3 rounded-lg border p-3 text-left hover:bg-accent transition-colors"
+                  className="group flex items-center gap-3 rounded-lg border p-3 text-left hover:bg-accent transition-colors cursor-pointer"
                 >
                   <FileText size={16} className="shrink-0 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
@@ -89,12 +107,21 @@ export default function DocsPage() {
                       {doc.publicAccess && <span className="ml-2 text-green-600">• Public</span>}
                     </p>
                   </div>
-                </button>
+                  {myUserId && doc.createdBy.id === myUserId && (
+                    <button
+                      onClick={(e) => deleteDoc(e, doc)}
+                      className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           )}
         </div>
       </div>
+      {confirmDialog}
     </AppShell>
   )
 }

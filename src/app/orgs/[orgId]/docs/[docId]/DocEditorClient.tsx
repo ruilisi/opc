@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { ArrowLeft, Settings, Copy, Check, Trash2, Users } from 'lucide-react'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 const DocEditor = dynamic(() => import('@/components/docs/DocEditor'), { ssr: false })
 
@@ -35,6 +36,7 @@ export default function DocEditorClient({ orgId, docId, token }: Props) {
   const [title, setTitle] = useState('')
   const [showSidebar, setShowSidebar] = useState(false)
   const [copied, setCopied] = useState(false)
+  const { confirm, dialog: confirmDialog } = useConfirm()
 
   useEffect(() => {
     fetch(`/api/orgs/${orgId}/docs/${docId}`)
@@ -68,7 +70,7 @@ export default function DocEditorClient({ orgId, docId, token }: Props) {
   }
 
   async function deleteDoc() {
-    if (!confirm('Delete this doc?')) return
+    if (!await confirm('删除文档', '确认删除此文档？此操作不可撤销。')) return
     await fetch(`/api/orgs/${orgId}/docs/${docId}`, { method: 'DELETE' })
     router.push(`/orgs/${orgId}/docs`)
   }
@@ -164,6 +166,7 @@ export default function DocEditorClient({ orgId, docId, token }: Props) {
           )}
         </div>
       </div>
+      {confirmDialog}
     </AppShell>
   )
 }

@@ -1,0 +1,4 @@
+.env.local
+.git
+node_modules
+.next

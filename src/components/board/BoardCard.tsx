@@ -6,9 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import UserAvatar from '@/components/shared/UserAvatar'
 import DeleteBoardDialog from './DeleteBoardDialog'
 import { useT } from '@/lib/i18n'
-
 interface BoardMember {
-  role?: string
+  role: string
   user: { id: string; name: string; avatarUrl?: string | null }
 }
 interface Board {
@@ -20,16 +19,22 @@ interface Board {
 }
 
 export default function BoardCard({ board, onDeleted }: { board: Board; onDeleted?: () => void }) {
-  const isOwner = board.members.some((m) => m.role === 'owner')
   const { dict } = useT()
 
   return (
-    <div className="group relative">
-      <Link href={`/boards/${board.id}`}>
-        <Card className="cursor-pointer transition-shadow hover:shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base pr-6">{board.name}</CardTitle>
-          </CardHeader>
+    <div className="group">
+      <Card className="cursor-pointer transition-shadow hover:shadow-md">
+        <CardHeader className="pb-2">
+          <div className="flex items-start gap-2">
+            <Link href={`/boards/${board.id}`} className="flex-1 min-w-0">
+              <CardTitle className="text-base">{board.name}</CardTitle>
+            </Link>
+            <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+              <DeleteBoardDialog board={board} onDeleted={() => onDeleted?.()} />
+            </div>
+          </div>
+        </CardHeader>
+        <Link href={`/boards/${board.id}`}>
           <CardContent className="flex flex-col gap-3">
             {board.description && (
               <p className="text-sm text-muted-foreground line-clamp-2">{board.description}</p>
@@ -49,16 +54,8 @@ export default function BoardCard({ board, onDeleted }: { board: Board; onDelete
               </div>
             </div>
           </CardContent>
-        </Card>
-      </Link>
-      {isOwner && (
-        <div className="absolute right-3 top-3">
-          <DeleteBoardDialog
-            board={board}
-            onDeleted={() => onDeleted?.()}
-          />
-        </div>
-      )}
+        </Link>
+      </Card>
     </div>
   )
 }

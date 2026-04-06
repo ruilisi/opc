@@ -63,9 +63,17 @@ export async function DELETE(
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { boardId } = await params
-  const result = await prisma.board.deleteMany({
-    where: { id: boardId, members: { some: { userId, role: 'owner' } } },
+  // Allow board owners or any org member that has access to the board
+  const board = await prisma.board.findFirst({
+    where: {
+      id: boardId,
+      OR: [
+        { members: { some: { userId, role: 'owner' } } },
+        { org: { members: { some: { userId } } } },
+      ],
+    },
   })
-  if (result.count === 0) return NextResponse.json({ error: 'Not found or forbidden' }, { status: 404 })
+  if (!board) return NextResponse.json({ error: 'Not found or forbidden' }, { status: 404 })
+  await prisma.board.delete({ where: { id: boardId } })
   return NextResponse.json({ ok: true })
 }

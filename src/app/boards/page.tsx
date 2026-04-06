@@ -9,6 +9,7 @@ import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { useT } from '@/lib/i18n'
 
 interface BoardMember {
+  role: string
   user: { id: string; name: string; avatarUrl?: string | null }
 }
 
