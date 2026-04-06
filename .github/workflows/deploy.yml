@@ -1,0 +1,80 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Tencent Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ruilisi.tencentcloudcr.com
+          username: ${{ secrets.TENCENT_REGISTRY_USER }}
+          password: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ruilisi.tencentcloudcr.com/lingti/opc:latest
+          cache-from: type=registry,ref=ruilisi.tencentcloudcr.com/lingti/opc:cache
+          cache-to: type=registry,ref=ruilisi.tencentcloudcr.com/lingti/opc:cache,mode=max
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+
+      - name: Write kubeconfig
+        run: echo "${{ secrets.KUBECONFIG_QCLOUD }}" | base64 -d > /tmp/kubeconfig
+
+      - name: Write secrets values
+        run: |
+          cat > /tmp/secrets.yaml << 'YAML'
+          image:
+            repository: ruilisi.tencentcloudcr.com/lingti/opc
+          ingress:
+            annotations:
+              kubernetes.io/ingress.class: nginx-pub
+              acme.cert-manager.io/http01-ingress-class: nginx-pub
+              kubernetes.io/ingress.subnetId: subnet-r5r6u9g8
+              cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+              nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+            hosts:
+              - host: opc.ruilisi.com
+              - host: opc-api.ruilisi.com
+                servicePort: ws
+          service:
+            extraPorts:
+              - name: ws
+                port: 1234
+                targetPort: 1234
+          YAML
+          cat >> /tmp/secrets.yaml << YAML
+          env:
+            DATABASE_URL: "${{ secrets.DATABASE_URL }}"
+            JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+            OAUTH_CLIENT_SECRET: "${{ secrets.OAUTH_CLIENT_SECRET }}"
+            QINIU_ACCESS_KEY: "${{ secrets.QINIU_ACCESS_KEY }}"
+            QINIU_SECRET_KEY: "${{ secrets.QINIU_SECRET_KEY }}"
+            QINIU_BUCKET: "${{ secrets.QINIU_BUCKET }}"
+            QINIU_DOMAIN: "${{ secrets.QINIU_DOMAIN }}"
+            NEXT_PUBLIC_HOCUSPOCUS_URL: "wss://opc-api.ruilisi.com"
+            HOCUSPOCUS_PORT: "1234"
+          YAML
+
+      - name: Clone helm chart
+        run: git clone https://github.com/ruilisi/deploy.git /tmp/deploy
+
+      - name: Helm deploy
+        run: |
+          helm upgrade --install opc /tmp/deploy \
+            -f .github/deploy/values.yaml \
+            -f /tmp/secrets.yaml \
+            --kubeconfig /tmp/kubeconfig \
+            --wait
