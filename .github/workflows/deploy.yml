@@ -23,6 +23,8 @@ jobs:
           context: .
           push: true
           tags: ruilisi.tencentcloudcr.com/lingti/opc:latest
+          build-args: |
+            NEXT_PUBLIC_HOCUSPOCUS_URL=wss://opc-api.ruilisi.com
           cache-from: type=registry,ref=ruilisi.tencentcloudcr.com/lingti/opc:cache
           cache-to: type=registry,ref=ruilisi.tencentcloudcr.com/lingti/opc:cache,mode=max
 
