@@ -1,4 +1,4 @@
-.PHONY: dev dev-online migrate migrate-create
+.PHONY: dev dev-online migrate migrate-prod migrate-create
 
 dev:
 	env -u REMOTE_API_URL bunx concurrently \
@@ -18,6 +18,13 @@ dev-online:
 #   DATABASE_URL=postgres://... make migrate
 migrate:
 	bunx prisma migrate deploy
+
+# Run pending migrations against the production database in the k8s pod.
+migrate-prod:
+	kubectl exec \
+	  $$(kubectl get pods --kubeconfig ~/.kube/qcloud_config -l app.kubernetes.io/instance=opc -o jsonpath='{.items[0].metadata.name}') \
+	  --kubeconfig ~/.kube/qcloud_config -- \
+	  node_modules/.bin/prisma migrate deploy
 
 # Create a new migration (dev only).
 # Usage: make migrate-create NAME=add_something
