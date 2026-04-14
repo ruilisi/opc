@@ -47,3 +47,4 @@ helm/secrets.yaml
 
 certificates.worktrees/
 *.local.json
+CLAUDE.md
