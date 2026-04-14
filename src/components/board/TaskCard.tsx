@@ -60,6 +60,19 @@ export default function TaskCard({ task, onClick }: Props) {
 
         {/* Badges row */}
         <div className="flex items-center gap-2 flex-wrap">
+          {task.priority != null && task.priority > 0 && (
+            <Badge
+              variant="outline"
+              className={`text-xs ${
+                task.priority === 4 ? 'border-red-400 bg-red-50 text-red-600' :
+                task.priority === 3 ? 'border-orange-400 bg-orange-50 text-orange-600' :
+                task.priority === 2 ? 'border-yellow-400 bg-yellow-50 text-yellow-600' :
+                'border-blue-300 bg-blue-50 text-blue-600'
+              }`}
+            >
+              {task.priority === 4 ? '🔴 Urgent' : task.priority === 3 ? '🟠 High' : task.priority === 2 ? '🟡 Medium' : '🔵 Low'}
+            </Badge>
+          )}
           {task.points != null && (
             <Badge variant="outline" className="text-xs">{task.points} pts</Badge>
           )}

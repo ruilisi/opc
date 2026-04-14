@@ -5,7 +5,7 @@ import { emitBoardEvent } from '@/lib/realtime'
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id')
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { columnId, title, content, points, aiModelTag } = await request.json()
+  const { columnId, title, content, points, aiModelTag, priority } = await request.json()
   if (!columnId || !title) return NextResponse.json({ error: 'columnId and title required' }, { status: 400 })
 
   const maxOrder = await prisma.task.aggregate({ where: { columnId }, _max: { order: true } })
@@ -15,11 +15,14 @@ export async function POST(request: NextRequest) {
       content,
       points,
       aiModelTag,
+      priority: priority ?? 0,
       columnId,
+      createdById: userId,
       order: (maxOrder._max.order ?? 0) + 1,
     },
     include: {
       members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+      createdBy: { select: { id: true, name: true, avatarUrl: true } },
       column: { select: { boardId: true } },
     },
   })

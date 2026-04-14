@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import UserAvatar from '@/components/shared/UserAvatar'
 import { toast } from 'sonner'
 import { useT } from '@/lib/i18n'
 
@@ -21,6 +20,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const { t } = useT()
 
   useEffect(() => {
@@ -29,6 +29,33 @@ export default function ProfilePage() {
       setName(u.name)
     })
   }, [])
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (!uploadRes.ok) throw new Error('Upload failed')
+      const { url } = await uploadRes.json()
+      const res = await fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: url }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      const updated = await res.json()
+      setUser(updated)
+      toast.success('Avatar updated')
+    } catch {
+      toast.error('Failed to upload avatar')
+    } finally {
+      setUploadingAvatar(false)
+      e.target.value = ''
+    }
+  }
 
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -58,7 +85,18 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
-                <UserAvatar name={user.name} avatarUrl={user.avatarUrl} size="lg" />
+                <label className="relative cursor-pointer group shrink-0">
+                  <div className="size-16 rounded-full overflow-hidden">
+                    {user.avatarUrl
+                      ? <img src={user.avatarUrl} alt={user.name} className="size-full object-cover" />
+                      : <div className="size-full flex items-center justify-center bg-muted text-lg font-semibold">{user.name.slice(0, 2).toUpperCase()}</div>
+                    }
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-medium">{uploadingAvatar ? '…' : 'Edit'}</span>
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                </label>
                 <div>
                   <CardTitle>{user.name}</CardTitle>
                   {user.email && <p className="text-sm text-muted-foreground">{user.email}</p>}

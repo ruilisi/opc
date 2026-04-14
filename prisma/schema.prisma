@@ -27,6 +27,7 @@ model User {
   createdFolders OrgFolder[] @relation("FolderCreator")
   createdDocs      Doc[]           @relation("DocCreator")
   docPermissions   DocPermission[] @relation("DocPermissionUser")
+  createdTasks     Task[]          @relation("TaskCreatedBy")
 }
 
 model Organization {
@@ -182,8 +183,11 @@ model Task {
   dueDate        DateTime?
   cover          String?
   folderPath     String?
+  priority       Int             @default(0)
   columnId       String
   column         Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdById    String?
+  createdBy      User?           @relation("TaskCreatedBy", fields: [createdById], references: [id])
   members        TaskMember[]
   labels         TaskLabel[]
   checklist      ChecklistItem[]

@@ -35,6 +35,7 @@ export default async function BoardPage({ params }: Props) {
               labels: { include: { label: { select: { id: true, name: true, color: true } } } },
               _count: { select: { checklist: true, attachments: true, comments: true } },
               checklist: { where: { checked: true }, select: { id: true, checked: true, text: true, order: true } },
+              createdBy: { select: { id: true, name: true, avatarUrl: true } },
             },
           },
         },

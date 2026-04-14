@@ -231,6 +231,12 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         cols.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== taskId) }))
       )
     },
+    onColumnMoved: (columnId, order) => {
+      setColumns((cols) => {
+        const updated = cols.map((c) => c.id === columnId ? { ...c, order } : c)
+        return [...updated].sort((a, b) => a.order - b.order)
+      })
+    },
   })
 
   return (

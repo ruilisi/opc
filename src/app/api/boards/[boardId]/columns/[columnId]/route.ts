@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { emitBoardEvent } from '@/lib/realtime'
 
 export async function PATCH(
   request: NextRequest,
@@ -17,6 +18,9 @@ export async function PATCH(
   if (!isMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const column = await prisma.column.update({ where: { id: columnId }, data })
+  if (body.order !== undefined) {
+    emitBoardEvent(boardId, { type: 'column.moved', payload: { columnId, order: column.order } })
+  }
   return NextResponse.json(column)
 }
 

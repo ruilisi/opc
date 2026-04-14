@@ -21,6 +21,7 @@ export async function GET(
         orderBy: { createdAt: 'asc' },
       },
       column: { select: { id: true, name: true, boardId: true } },
+      createdBy: { select: { id: true, name: true, avatarUrl: true } },
     },
   })
   if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -35,7 +36,7 @@ export async function PATCH(
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { taskId } = await params
   const body = await request.json()
-  const { title, content, points, aiModelTag, dueDate, cover, folderPath } = body
+  const { title, content, points, aiModelTag, dueDate, cover, folderPath, priority } = body
   const task = await prisma.task.update({
     where: { id: taskId },
     data: {
@@ -46,6 +47,7 @@ export async function PATCH(
       ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
       ...(cover !== undefined && { cover }),
       ...(folderPath !== undefined && { folderPath }),
+      ...(priority !== undefined && { priority }),
     },
     include: {
       members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },

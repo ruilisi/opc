@@ -79,6 +79,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
   const [dueDate, setDueDate] = useState('')
   const [cover, setCover] = useState('')
   const [folderPath, setFolderPath] = useState('')
+  const [priority, setPriority] = useState(0)
   const [folderSuggestions, setFolderSuggestions] = useState<{ path: string; count: number }[]>([])
   const [folderPickerOpen, setFolderPickerOpen] = useState(false)
   const [boardBasePath, setBoardBasePath] = useState<string | null>(null)
@@ -146,6 +147,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
         setDueDate(t.dueDate ? t.dueDate.slice(0, 10) : '')
         setCover(t.cover ?? '')
         setFolderPath(t.folderPath ?? '')
+        setPriority(t.priority ?? 0)
         setMembers(t.members ?? [])
         setLabels(t.labels ?? [])
         setChecklist(t.checklist ?? [])
@@ -212,6 +214,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
             dueDate: dueDate || undefined,
             cover: cover || undefined,
             folderPath: folderPath.trim() || undefined,
+            priority,
           }),
         })
         if (!res.ok) throw new Error('Failed')
@@ -237,6 +240,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
           dueDate: dueDate || null,
           cover: cover || null,
           folderPath: folderPath.trim() || null,
+          priority,
         }),
       })
       if (!res.ok) throw new Error('Failed')
@@ -840,6 +844,39 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                     <p className="text-xs text-muted-foreground truncate">Base: <span className="font-mono">{boardBasePath}</span></p>
                   )}
                 </div>
+
+                {/* Priority */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Priority</span>
+                  <div className="flex gap-1 flex-wrap">
+                    {([
+                      { value: 0, label: 'None', className: 'text-muted-foreground border-border' },
+                      { value: 1, label: 'Low', className: 'text-blue-600 border-blue-300 bg-blue-50' },
+                      { value: 2, label: 'Medium', className: 'text-yellow-600 border-yellow-400 bg-yellow-50' },
+                      { value: 3, label: 'High', className: 'text-orange-600 border-orange-400 bg-orange-50' },
+                      { value: 4, label: 'Urgent', className: 'text-red-600 border-red-400 bg-red-50' },
+                    ] as const).map(({ value, label, className }) => (
+                      <button
+                        key={value}
+                        onClick={() => { setPriority(value); setTimeout(handleSave, 0) }}
+                        className={`rounded-md border px-2 py-0.5 text-xs font-medium transition-colors ${priority === value ? className + ' ring-1 ring-offset-1 ring-current' : 'text-muted-foreground border-border hover:bg-accent'}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Creator */}
+                {task?.createdBy && (
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Created by</span>
+                    <div className="flex items-center gap-2">
+                      <UserAvatar name={task.createdBy.name} avatarUrl={task.createdBy.avatarUrl} size="sm" />
+                      <span className="text-sm truncate">{task.createdBy.name}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Story Points & AI Model */}
                 <div className="flex flex-col gap-1.5">

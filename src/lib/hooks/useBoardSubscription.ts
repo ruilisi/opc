@@ -16,6 +16,7 @@ export interface BoardHandlers {
   onCommentAdded?: (taskId: string, comment: CommentPayload) => void
   onTaskCreated?: (task: Task) => void
   onTaskDeleted?: (taskId: string) => void
+  onColumnMoved?: (columnId: string, order: number) => void
 }
 
 export function useBoardSubscription(boardId: string, handlers: BoardHandlers) {
@@ -45,6 +46,9 @@ export function useBoardSubscription(boardId: string, handlers: BoardHandlers) {
             break
           case 'task.deleted':
             h.onTaskDeleted?.(event.payload.taskId)
+            break
+          case 'column.moved':
+            h.onColumnMoved?.(event.payload.columnId, event.payload.order)
             break
         }
       } catch {

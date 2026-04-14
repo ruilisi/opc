@@ -37,6 +37,8 @@ export interface Task {
   dueDate?: string | null
   cover?: string | null
   folderPath?: string | null
+  priority?: number
+  createdBy?: { id: string; name: string; avatarUrl?: string | null } | null
   columnId?: string
   column?: { id: string; name: string; boardId: string } | null
   members?: TaskMember[]
