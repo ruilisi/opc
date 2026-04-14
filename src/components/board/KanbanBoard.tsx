@@ -165,7 +165,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
 
   function handleTaskCreated(columnId: string, task: Task) {
     setColumns((cols) =>
-      cols.map((c) => c.id === columnId ? { ...c, tasks: [...c.tasks, task] } : c)
+      cols.map((c) => c.id === columnId ? { ...c, tasks: c.tasks.some((t) => t.id === task.id) ? c.tasks : [...c.tasks, task] } : c)
     )
   }
 

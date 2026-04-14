@@ -35,6 +35,7 @@ export async function DELETE(
   const isMember = await prisma.boardMember.findFirst({ where: { boardId, userId, role: 'owner' } })
   if (!isMember) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+  await prisma.boardForm.deleteMany({ where: { columnId } })
   await prisma.column.delete({ where: { id: columnId } })
   return NextResponse.json({ ok: true })
 }
