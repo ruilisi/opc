@@ -7,7 +7,8 @@ import Collaboration from '@tiptap/extension-collaboration'
 import Image from '@tiptap/extension-image'
 import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
-import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Code, Image as ImageIcon, FileText } from 'lucide-react'
+import Typography from '@tiptap/extension-typography'
+import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Code, Code2, Image as ImageIcon, FileText, Strikethrough, TextQuote, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -51,6 +52,7 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: ydocRef.current }),
       Image,
+      Typography,
     ],
   })
 
@@ -85,28 +87,41 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
     <div className="flex flex-col flex-1 min-h-0">
       {!readOnly && (
         <div className="flex items-center gap-0.5 border-b px-3 py-1.5 flex-wrap shrink-0">
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().toggleBold().run()}>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('bold') && 'bg-accent')} onClick={() => editor.chain().focus().toggleBold().run()}>
             <Bold size={13} />
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().toggleItalic().run()}>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('italic') && 'bg-accent')} onClick={() => editor.chain().focus().toggleItalic().run()}>
             <Italic size={13} />
           </Button>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('strike') && 'bg-accent')} onClick={() => editor.chain().focus().toggleStrike().run()}>
+            <Strikethrough size={13} />
+          </Button>
           <div className="w-px h-4 bg-border mx-1" />
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('heading', { level: 1 }) && 'bg-accent')} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
             <Heading1 size={13} />
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('heading', { level: 2 }) && 'bg-accent')} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
             <Heading2 size={13} />
           </Button>
           <div className="w-px h-4 bg-border mx-1" />
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().toggleBulletList().run()}>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('bulletList') && 'bg-accent')} onClick={() => editor.chain().focus().toggleBulletList().run()}>
             <List size={13} />
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('orderedList') && 'bg-accent')} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
             <ListOrdered size={13} />
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().toggleCode().run()}>
+          <div className="w-px h-4 bg-border mx-1" />
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('code') && 'bg-accent')} onClick={() => editor.chain().focus().toggleCode().run()}>
             <Code size={13} />
+          </Button>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('codeBlock') && 'bg-accent')} onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
+            <Code2 size={13} />
+          </Button>
+          <Button variant="ghost" size="sm" className={cn('h-7 px-2', editor.isActive('blockquote') && 'bg-accent')} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+            <TextQuote size={13} />
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => editor.chain().focus().setHorizontalRule().run()}>
+            <Minus size={13} />
           </Button>
           <div className="w-px h-4 bg-border mx-1" />
           <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => imageInputRef.current?.click()} title="Insert image">
