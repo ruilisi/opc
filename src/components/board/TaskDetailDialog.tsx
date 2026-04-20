@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import MarkdownEditor from '@/components/editor/MarkdownEditor'
 import UserAvatar from '@/components/shared/UserAvatar'
 import { toast } from 'sonner'
-import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft, Trash2, Copy } from 'lucide-react'
+import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft, Trash2, Copy, Archive } from 'lucide-react'
 import type { Task, ChecklistItem, Attachment, TaskMember, TaskLabel } from '@/types'
 import { useBoardSubscription } from '@/lib/hooks/useBoardSubscription'
 
@@ -402,6 +402,23 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
     }
   }
 
+  async function handleArchive() {
+    if (!task) return
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: true }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      onOpenChange(false)
+      onDeleted?.(task.id)
+      toast.success('Card archived')
+    } catch {
+      toast.error('Failed to archive card')
+    }
+  }
+
   async function handleComment() {
     if (!task || !commentText.trim()) return
     try {
@@ -638,6 +655,9 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                   <div className="flex flex-col gap-1.5">
                     <button onClick={handleDuplicate} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-accent transition-colors text-left">
                       <Copy size={13} className="shrink-0" /> Duplicate
+                    </button>
+                    <button onClick={handleArchive} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-accent transition-colors text-left text-muted-foreground">
+                      <Archive size={13} className="shrink-0" /> Archive
                     </button>
                     {confirmDelete ? (
                       <div className="flex flex-col gap-1.5 rounded-md border border-destructive/30 p-2">

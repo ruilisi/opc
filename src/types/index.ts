@@ -38,6 +38,7 @@ export interface Task {
   cover?: string | null
   folderPath?: string | null
   priority?: number
+  archived?: boolean
   createdBy?: { id: string; name: string; avatarUrl?: string | null } | null
   columnId?: string
   column?: { id: string; name: string; boardId: string } | null

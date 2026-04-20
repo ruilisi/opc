@@ -4,8 +4,9 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import KanbanColumn from './KanbanColumn'
 import TaskDetailDialog from './TaskDetailDialog'
+import ArchivedTasksDrawer from './ArchivedTasksDrawer'
 import { Button } from '@/components/ui/button'
-import { Plus, Filter } from 'lucide-react'
+import { Plus, Filter, Archive } from 'lucide-react'
 import { computeOrder } from '@/lib/utils'
 import { toast } from 'sonner'
 import { PromptDialog } from '@/components/ui/prompt-dialog'
@@ -34,6 +35,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   const [filters, setFilters] = useState<BoardFilters>({ labelIds: [], userIds: [], due: null })
   const [filterOpen, setFilterOpen] = useState(false)
   const [addColumnOpen, setAddColumnOpen] = useState(false)
+  const [archivedDrawerOpen, setArchivedDrawerOpen] = useState(false)
   const filterPanelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -170,11 +172,31 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   }
 
   function handleTaskUpdated(task: Task) {
+    if (task.archived) {
+      handleTaskDeleted(task.id)
+      return
+    }
     setColumns((cols) =>
       cols.map((c) => ({
         ...c,
         tasks: c.tasks.map((t) => (t.id === task.id ? { ...t, ...task } : t)),
       }))
+    )
+  }
+
+  function handleColumnTasksArchived(columnId: string) {
+    setColumns((cols) =>
+      cols.map((c) => c.id === columnId ? { ...c, tasks: [] } : c)
+    )
+  }
+
+  function handleTaskRestored(task: Task) {
+    setColumns((cols) =>
+      cols.map((c) => {
+        if (c.id !== task.columnId) return c
+        if (c.tasks.some((t) => t.id === task.id)) return c
+        return { ...c, tasks: [...c.tasks, task].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) }
+      })
     )
   }
 
@@ -213,6 +235,10 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
       })
     },
     onTaskUpdated: (task) => {
+      if (task.archived) {
+        setColumns((cols) => cols.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== task.id) })))
+        return
+      }
       setColumns((cols) =>
         cols.map((c) => ({ ...c, tasks: c.tasks.map((t) => (t.id === task.id ? { ...t, ...task } : t)) }))
       )
@@ -231,6 +257,9 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         cols.map((c) => ({ ...c, tasks: c.tasks.filter((t) => t.id !== taskId) }))
       )
     },
+    onColumnTasksArchived: (columnId) => {
+      setColumns((cols) => cols.map((c) => c.id === columnId ? { ...c, tasks: [] } : c))
+    },
     onColumnMoved: (columnId, order) => {
       setColumns((cols) => {
         const updated = cols.map((c) => c.id === columnId ? { ...c, order } : c)
@@ -242,8 +271,17 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   return (
     <>
       {/* Filter toolbar */}
+      <div className="flex items-center gap-2 px-4 pt-2 pb-0 shrink-0">
+        <button
+          onClick={() => setArchivedDrawerOpen(true)}
+          className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs text-muted-foreground hover:bg-muted transition-colors"
+        >
+          <Archive size={12} />
+          Archived
+        </button>
+      </div>
       {(allLabels.length > 0 || allMembers.length > 0) && (
-        <div className="flex items-center gap-2 px-4 pt-2 pb-0 shrink-0">
+        <div className="flex items-center gap-2 px-4 pt-0 pb-0 shrink-0">
           <div className="relative">
             <button
               onClick={() => setFilterOpen((v) => !v)}
@@ -362,6 +400,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                         onTaskCreated={(task) => handleTaskCreated(col.id, task)}
                         onColumnDeleted={handleColumnDeleted}
                         onColumnRenamed={handleColumnRenamed}
+                        onColumnTasksArchived={handleColumnTasksArchived}
                         dragHandleProps={provided.dragHandleProps}
                       />
                     </div>
@@ -395,6 +434,13 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         confirmLabel={t('board_add_column_submit')}
         cancelLabel={t('board_add_column_cancel')}
         onConfirm={confirmAddColumn}
+      />
+      <ArchivedTasksDrawer
+        boardId={boardId}
+        open={archivedDrawerOpen}
+        onOpenChange={setArchivedDrawerOpen}
+        onRestored={handleTaskRestored}
+        onDeleted={handleTaskDeleted}
       />
     </>
   )

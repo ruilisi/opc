@@ -21,6 +21,7 @@ export async function GET(
         orderBy: { order: 'asc' },
         include: {
           tasks: {
+            where: { archived: false },
             orderBy: { order: 'asc' },
             include: {
               members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },

@@ -16,12 +16,14 @@ import { useT } from '@/lib/i18n'
 interface Props {
   column: { id: string; name: string; boardId: string }
   taskCount: number
+  totalPoints: number
   onAddTask: () => void
   onDeleted: (columnId: string) => void
   onRenamed: (columnId: string, name: string) => void
+  onArchiveAll: () => void
 }
 
-export default function ColumnHeader({ column, taskCount, onAddTask, onDeleted, onRenamed }: Props) {
+export default function ColumnHeader({ column, taskCount, totalPoints, onAddTask, onDeleted, onRenamed, onArchiveAll }: Props) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(column.name)
   const { t } = useT()
@@ -72,6 +74,9 @@ export default function ColumnHeader({ column, taskCount, onAddTask, onDeleted, 
           </h3>
         )}
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{taskCount}</span>
+        {totalPoints > 0 && (
+          <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary font-medium">{totalPoints} pts</span>
+        )}
       </div>
       <div className="flex items-center gap-1 shrink-0">
         <Button variant="ghost" size="icon" className="size-7" onClick={onAddTask}>
@@ -83,6 +88,7 @@ export default function ColumnHeader({ column, taskCount, onAddTask, onDeleted, 
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setEditing(true)}>{t('column_rename')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={onArchiveAll}>Archive All Tasks</DropdownMenuItem>
             <DropdownMenuItem className="text-destructive" onClick={handleDelete}>{t('column_delete')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

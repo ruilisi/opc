@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, Extension } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
 import Image from '@tiptap/extension-image'
@@ -11,6 +11,39 @@ import Typography from '@tiptap/extension-typography'
 import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Code, Code2, Image as ImageIcon, FileText, Strikethrough, TextQuote, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
+// Heading shortcuts via keymap — input rules can be blocked by the Collaboration plugin
+const MarkdownShortcuts = Extension.create({
+  name: 'markdownShortcuts',
+  addKeyboardShortcuts() {
+    return {
+      Space: ({ editor }) => {
+        const { state } = editor
+        const { $from } = state.selection
+        const lineText = $from.parent.textContent.slice(0, $from.parentOffset)
+        const headingMatch = lineText.match(/^(#{1,6})$/)
+        if (headingMatch) {
+          const level = headingMatch[1].length as 1 | 2 | 3 | 4 | 5 | 6
+          return editor
+            .chain()
+            .command(({ tr }) => { tr.delete($from.pos - headingMatch[1].length, $from.pos); return true })
+            .setHeading({ level })
+            .run()
+        }
+        return false
+      },
+      Enter: ({ editor }) => {
+        const { state } = editor
+        const { $from } = state.selection
+        // Exit heading on Enter at end of line
+        if ($from.parent.type.name === 'heading' && $from.parentOffset === $from.parent.content.size) {
+          return editor.chain().setNode('paragraph').run()
+        }
+        return false
+      },
+    }
+  },
+})
 
 interface DocEditorProps {
   docId: string
@@ -53,6 +86,7 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
       Collaboration.configure({ document: ydocRef.current }),
       Image,
       Typography,
+      MarkdownShortcuts,
     ],
   })
 

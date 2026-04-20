@@ -26,15 +26,18 @@ interface Props {
   onTaskCreated: (task: Task) => void
   onColumnDeleted: (columnId: string) => void
   onColumnRenamed: (columnId: string, name: string) => void
+  onColumnTasksArchived: (columnId: string) => void
   dragHandleProps?: DraggableProvidedDragHandleProps | null
 }
 
-export default function KanbanColumn({ column, filters, isFiltered, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, dragHandleProps }: Props) {
+export default function KanbanColumn({ column, filters, isFiltered, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, onColumnTasksArchived, dragHandleProps }: Props) {
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { t } = useT()
+
+  const totalPoints = useMemo(() => column.tasks.reduce((sum, t) => sum + (t.points ?? 0), 0), [column.tasks])
 
   const visibleTasks = useMemo(() => {
     return column.tasks.filter((task) => {
@@ -68,6 +71,16 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
   useEffect(() => {
     if (adding) textareaRef.current?.focus()
   }, [adding])
+
+  async function handleArchiveAll() {
+    try {
+      const res = await fetch(`/api/boards/${column.boardId}/columns/${column.id}/archive-tasks`, { method: 'POST' })
+      if (!res.ok) throw new Error('Failed')
+      onColumnTasksArchived(column.id)
+    } catch {
+      toast.error('Failed to archive tasks')
+    }
+  }
 
   function openAdd() {
     setTitle('')
@@ -114,9 +127,11 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
         <ColumnHeader
           column={column}
           taskCount={visibleTasks.length}
+          totalPoints={totalPoints}
           onAddTask={openAdd}
           onDeleted={onColumnDeleted}
           onRenamed={onColumnRenamed}
+          onArchiveAll={handleArchiveAll}
         />
       </div>
       <Droppable droppableId={column.id}>

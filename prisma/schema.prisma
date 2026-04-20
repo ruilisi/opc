@@ -184,6 +184,7 @@ model Task {
   cover          String?
   folderPath     String?
   priority       Int             @default(0)
+  archived       Boolean         @default(false)
   columnId       String
   column         Column          @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdById    String?
