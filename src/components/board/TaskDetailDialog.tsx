@@ -196,8 +196,10 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  async function handleSave() {
+  async function handleSave(overrides?: { priority?: number; cover?: string }) {
     if (!title.trim()) return
+    const effectivePriority = overrides?.priority ?? priority
+    const effectiveCover = overrides?.cover ?? cover
 
     // Create mode
     if (!task && columnId) {
@@ -212,9 +214,9 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
             points: points ? parseInt(points) : undefined,
             aiModelTag: aiModelTag || undefined,
             dueDate: dueDate || undefined,
-            cover: cover || undefined,
+            cover: effectiveCover || undefined,
             folderPath: folderPath.trim() || undefined,
-            priority,
+            priority: effectivePriority,
           }),
         })
         if (!res.ok) throw new Error('Failed')
@@ -238,9 +240,9 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
           points: points ? parseInt(points) : null,
           aiModelTag: aiModelTag || null,
           dueDate: dueDate || null,
-          cover: cover || null,
+          cover: effectiveCover || null,
           folderPath: folderPath.trim() || null,
-          priority,
+          priority: effectivePriority,
         }),
       })
       if (!res.ok) throw new Error('Failed')
@@ -470,7 +472,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                   <textarea
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    onBlur={!task && columnId ? undefined : handleSave}
+                    onBlur={!task && columnId ? undefined : () => handleSave()}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!task && columnId) handleSave() } }}
                     placeholder={!task ? 'Task title...' : undefined}
                     autoFocus={!task}
@@ -479,7 +481,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                     style={{ fieldSizing: 'content' } as React.CSSProperties}
                   />
                   {!task && columnId && (
-                    <Button onClick={handleSave} disabled={!title.trim()} className="shrink-0">
+                    <Button onClick={() => handleSave()} disabled={!title.trim()} className="shrink-0">
                       Create
                     </Button>
                   )}
@@ -583,7 +585,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                           </div>
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                             <button
-                              onClick={() => { setCover(cover === a.url ? '' : a.url); setTimeout(handleSave, 0) }}
+                              onClick={() => { const c = cover === a.url ? '' : a.url; setCover(c); handleSave({ cover: c }) }}
                               className={`text-xs px-2 py-1 rounded border transition-colors ${cover === a.url ? 'text-primary border-primary bg-primary/5' : 'text-muted-foreground border-transparent hover:border-border'}`}
                             >
                               {cover === a.url ? 'Cover ✓' : 'Cover'}
@@ -772,14 +774,14 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cover</span>
                   <div className="flex flex-wrap gap-1.5">
                     {COVER_COLORS.map((c) => (
-                      <button key={c} onClick={() => { setCover(cover === c ? '' : c); setTimeout(handleSave, 0) }}
+                      <button key={c} onClick={() => { const v = cover === c ? '' : c; setCover(v); handleSave({ cover: v }) }}
                         className={`size-6 rounded transition-transform hover:scale-110 ${cover === c ? 'ring-2 ring-offset-1 ring-foreground scale-110' : ''}`}
                         style={{ backgroundColor: c }}
                       />
                     ))}
                   </div>
                   {cover && (
-                    <button onClick={() => { setCover(''); setTimeout(handleSave, 0) }} className="text-xs text-muted-foreground hover:text-foreground text-left">
+                    <button onClick={() => { setCover(''); handleSave({ cover: '' }) }} className="text-xs text-muted-foreground hover:text-foreground text-left">
                       Remove cover
                     </button>
                   )}
@@ -834,7 +836,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                             value={folderPath}
                             onChange={(e) => setFolderPath(e.target.value)}
                             onFocus={() => { fetchFolderSuggestions(); setFolderPickerOpen(true) }}
-                            onBlur={handleSave}
+                            onBlur={() => handleSave()}
                             placeholder="src/components"
                             className="h-8 pl-6 text-xs font-mono"
                           />
@@ -878,7 +880,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                     ] as const).map(({ value, label, className }) => (
                       <button
                         key={value}
-                        onClick={() => { setPriority(value); setTimeout(handleSave, 0) }}
+                        onClick={() => { setPriority(value); handleSave({ priority: value }) }}
                         className={`rounded-md border px-2 py-0.5 text-xs font-medium transition-colors ${priority === value ? className + ' ring-1 ring-offset-1 ring-current' : 'text-muted-foreground border-border hover:bg-accent'}`}
                       >
                         {label}
@@ -901,11 +903,11 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                 {/* Story Points & AI Model */}
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Story Points</span>
-                  <Input type="number" value={points} onChange={(e) => setPoints(e.target.value)} onBlur={handleSave} placeholder="0" className="h-8 text-sm" />
+                  <Input type="number" value={points} onChange={(e) => setPoints(e.target.value)} onBlur={() => handleSave()} placeholder="0" className="h-8 text-sm" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Model</span>
-                  <Input value={aiModelTag} onChange={(e) => setAiModelTag(e.target.value)} onBlur={handleSave} placeholder="claude-opus-4" className="h-8 text-sm" />
+                  <Input value={aiModelTag} onChange={(e) => setAiModelTag(e.target.value)} onBlur={() => handleSave()} placeholder="claude-opus-4" className="h-8 text-sm" />
                 </div>
 
               </div>
