@@ -8,6 +8,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
@@ -21,9 +24,11 @@ interface Props {
   onDeleted: (columnId: string) => void
   onRenamed: (columnId: string, name: string) => void
   onArchiveAll: () => void
+  otherColumns: { id: string; name: string }[]
+  onMoveAllTo: (targetColumnId: string) => void
 }
 
-export default function ColumnHeader({ column, taskCount, totalPoints, onAddTask, onDeleted, onRenamed, onArchiveAll }: Props) {
+export default function ColumnHeader({ column, taskCount, totalPoints, onAddTask, onDeleted, onRenamed, onArchiveAll, otherColumns, onMoveAllTo }: Props) {
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState(column.name)
   const { t } = useT()
@@ -88,6 +93,16 @@ export default function ColumnHeader({ column, taskCount, totalPoints, onAddTask
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setEditing(true)}>{t('column_rename')}</DropdownMenuItem>
+            {otherColumns.length > 0 && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>Move All to</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {otherColumns.map((col) => (
+                    <DropdownMenuItem key={col.id} onClick={() => onMoveAllTo(col.id)}>{col.name}</DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
             <DropdownMenuItem onClick={onArchiveAll}>Archive All Tasks</DropdownMenuItem>
             <DropdownMenuItem className="text-destructive" onClick={handleDelete}>{t('column_delete')}</DropdownMenuItem>
           </DropdownMenuContent>

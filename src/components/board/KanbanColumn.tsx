@@ -27,10 +27,12 @@ interface Props {
   onColumnDeleted: (columnId: string) => void
   onColumnRenamed: (columnId: string, name: string) => void
   onColumnTasksArchived: (columnId: string) => void
+  onColumnTasksMoved: (fromColumnId: string, toColumnId: string, tasks: Task[]) => void
+  allColumns: { id: string; name: string }[]
   dragHandleProps?: DraggableProvidedDragHandleProps | null
 }
 
-export default function KanbanColumn({ column, filters, isFiltered, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, onColumnTasksArchived, dragHandleProps }: Props) {
+export default function KanbanColumn({ column, filters, isFiltered, onTaskClick, onTaskCreated, onColumnDeleted, onColumnRenamed, onColumnTasksArchived, onColumnTasksMoved, allColumns, dragHandleProps }: Props) {
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
@@ -71,6 +73,21 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
   useEffect(() => {
     if (adding) textareaRef.current?.focus()
   }, [adding])
+
+  async function handleMoveAllTo(targetColumnId: string) {
+    try {
+      const res = await fetch(`/api/boards/${column.boardId}/columns/${column.id}/move-tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetColumnId }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      const { tasks } = await res.json()
+      onColumnTasksMoved(column.id, targetColumnId, tasks)
+    } catch {
+      toast.error('Failed to move tasks')
+    }
+  }
 
   async function handleArchiveAll() {
     try {
@@ -132,6 +149,8 @@ export default function KanbanColumn({ column, filters, isFiltered, onTaskClick,
           onDeleted={onColumnDeleted}
           onRenamed={onColumnRenamed}
           onArchiveAll={handleArchiveAll}
+          otherColumns={allColumns.filter((c) => c.id !== column.id)}
+          onMoveAllTo={handleMoveAllTo}
         />
       </div>
       <Droppable droppableId={column.id}>

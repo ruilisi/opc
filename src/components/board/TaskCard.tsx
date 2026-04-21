@@ -31,7 +31,12 @@ export default function TaskCard({ task, onClick }: Props) {
   return (
     <div
       onClick={onClick}
-      className="rounded-lg border bg-card cursor-pointer shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
+      className={`rounded-lg border bg-card cursor-pointer shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden ${
+        task.priority === 4 ? 'border-l-[3px] border-l-red-500' :
+        task.priority === 3 ? 'border-l-[3px] border-l-orange-400' :
+        task.priority === 2 ? 'border-l-[3px] border-l-yellow-400' :
+        task.priority === 1 ? 'border-l-[3px] border-l-blue-400' : ''
+      }`}
     >
       {/* Cover strip */}
       {task.cover && (

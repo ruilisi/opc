@@ -18,6 +18,7 @@ export interface BoardHandlers {
   onTaskDeleted?: (taskId: string) => void
   onColumnMoved?: (columnId: string, order: number) => void
   onColumnTasksArchived?: (columnId: string) => void
+  onColumnTasksMoved?: (fromColumnId: string, toColumnId: string, tasks: Task[]) => void
 }
 
 export function useBoardSubscription(boardId: string, handlers: BoardHandlers) {
@@ -53,6 +54,9 @@ export function useBoardSubscription(boardId: string, handlers: BoardHandlers) {
             break
           case 'column.tasksArchived':
             h.onColumnTasksArchived?.(event.payload.columnId)
+            break
+          case 'column.tasksMoved':
+            h.onColumnTasksMoved?.(event.payload.fromColumnId, event.payload.toColumnId, event.payload.tasks)
             break
         }
       } catch {

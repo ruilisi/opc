@@ -4,7 +4,7 @@ const emitter = new EventEmitter()
 emitter.setMaxListeners(200)
 
 export interface BoardEvent {
-  type: 'task.created' | 'task.updated' | 'task.deleted' | 'task.moved' | 'comment.added' | 'column.moved' | 'column.tasksArchived'
+  type: 'task.created' | 'task.updated' | 'task.deleted' | 'task.moved' | 'comment.added' | 'column.moved' | 'column.tasksArchived' | 'column.tasksMoved'
   payload: object
 }
 

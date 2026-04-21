@@ -184,6 +184,19 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
     )
   }
 
+  function handleMoveAllTasksToColumn(fromColumnId: string, toColumnId: string, tasks: Task[]) {
+    setColumns((cols) =>
+      cols.map((c) => {
+        if (c.id === fromColumnId) return { ...c, tasks: [] }
+        if (c.id === toColumnId) {
+          const existing = c.tasks.filter((t) => !tasks.some((mt) => mt.id === t.id))
+          return { ...c, tasks: [...existing, ...tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) }
+        }
+        return c
+      })
+    )
+  }
+
   function handleColumnTasksArchived(columnId: string) {
     setColumns((cols) =>
       cols.map((c) => c.id === columnId ? { ...c, tasks: [] } : c)
@@ -259,6 +272,18 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
     },
     onColumnTasksArchived: (columnId) => {
       setColumns((cols) => cols.map((c) => c.id === columnId ? { ...c, tasks: [] } : c))
+    },
+    onColumnTasksMoved: (fromColumnId, toColumnId, tasks) => {
+      setColumns((cols) =>
+        cols.map((c) => {
+          if (c.id === fromColumnId) return { ...c, tasks: [] }
+          if (c.id === toColumnId) {
+            const existing = c.tasks.filter((t) => !tasks.some((mt) => mt.id === t.id))
+            return { ...c, tasks: [...existing, ...tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) }
+          }
+          return c
+        })
+      )
     },
     onColumnMoved: (columnId, order) => {
       setColumns((cols) => {
@@ -401,6 +426,8 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
                         onColumnDeleted={handleColumnDeleted}
                         onColumnRenamed={handleColumnRenamed}
                         onColumnTasksArchived={handleColumnTasksArchived}
+                        onColumnTasksMoved={handleMoveAllTasksToColumn}
+                        allColumns={columns.map((c) => ({ id: c.id, name: c.name }))}
                         dragHandleProps={provided.dragHandleProps}
                       />
                     </div>
