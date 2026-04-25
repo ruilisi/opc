@@ -294,7 +294,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
   })
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       {/* Filter toolbar */}
       <div className="flex items-center gap-2 px-4 pt-2 pb-0 shrink-0">
         <button
@@ -404,7 +404,7 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="flex gap-4 overflow-x-auto p-4 h-full"
+              className="flex gap-4 overflow-x-auto p-4 flex-1 min-h-0"
             >
               {columns.map((col, index) => (
                 <Draggable key={col.id} draggableId={col.id} index={index}>
@@ -469,6 +469,6 @@ export default function KanbanBoard({ boardId, initialColumns }: Props) {
         onRestored={handleTaskRestored}
         onDeleted={handleTaskDeleted}
       />
-    </>
+    </div>
   )
 }
