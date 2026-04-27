@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { Send, Plus, Check, X, Paperclip, Folder, FolderOpen, ChevronRight, ArrowLeft, Trash2, Copy, Archive } from 'lucide-react'
 import type { Task, ChecklistItem, Attachment, TaskMember, TaskLabel } from '@/types'
 import { useBoardSubscription } from '@/lib/hooks/useBoardSubscription'
+import { useT } from '@/lib/i18n'
 
 interface BoardMemberUser {
   id: string
@@ -69,7 +70,14 @@ function NewLabelForm({ boardId, onCreated }: { boardId: string; onCreated: (lab
   )
 }
 
+function dateOffset(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
 export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated, columnId, boardId, onCreated, onDeleted }: Props) {
+  const { dict } = useT()
   const [task, setTask] = useState<Task | null>(null)
   const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState('')
@@ -761,6 +769,32 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                 {/* Due Date */}
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Due Date</span>
+                  <div className="flex flex-wrap gap-1">
+                    {([0, 1, 2, 7, 30] as const).map((days, i) => {
+                      const val = dateOffset(days)
+                      const label = [dict.due_shortcut_today, dict.due_shortcut_tomorrow, dict.due_shortcut_2days, dict.due_shortcut_week, dict.due_shortcut_month][i]
+                      const active = dueDate === val
+                      return (
+                        <button
+                          key={days}
+                          type="button"
+                          onClick={() => { setDueDate(val); setTimeout(handleSave, 0) }}
+                          className={`text-xs rounded-full border px-2 py-0.5 transition-colors ${active ? 'bg-primary/10 border-primary text-primary' : 'hover:bg-muted text-muted-foreground'}`}
+                        >
+                          {label as string}
+                        </button>
+                      )
+                    })}
+                    {dueDate && (
+                      <button
+                        type="button"
+                        onClick={() => { setDueDate(''); setTimeout(handleSave, 0) }}
+                        className="text-xs rounded-full border px-2 py-0.5 text-muted-foreground hover:bg-muted transition-colors"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="date"
                     value={dueDate}

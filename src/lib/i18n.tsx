@@ -236,6 +236,17 @@ const translations = {
     tags_new_ph: 'Tag name',
     tags_new_submit: 'Create',
     tags_delete_confirm: 'Delete this tag?',
+    // Due date shortcuts & labels
+    due_shortcut_today: 'Today',
+    due_shortcut_tomorrow: 'Tomorrow',
+    due_shortcut_2days: 'Day after tomorrow',
+    due_shortcut_week: 'Within a week',
+    due_shortcut_month: 'Within a month',
+    due_label_overdue: 'Overdue',
+    due_label_today: 'Today',
+    due_label_tomorrow: 'Tomorrow',
+    due_label_2days: 'Day after tomorrow',
+    due_label_n_days: (n: number) => `In ${n} days`,
   },
   zh: {
     // Nav
@@ -468,6 +479,17 @@ const translations = {
     tags_new_ph: '标签名称',
     tags_new_submit: '创建',
     tags_delete_confirm: '删除此标签？',
+    // Due date shortcuts & labels
+    due_shortcut_today: '今天',
+    due_shortcut_tomorrow: '明天',
+    due_shortcut_2days: '后天',
+    due_shortcut_week: '一周内',
+    due_shortcut_month: '一个月内',
+    due_label_overdue: '已逾期',
+    due_label_today: '今天',
+    due_label_tomorrow: '明天',
+    due_label_2days: '后天',
+    due_label_n_days: (n: number) => `${n}天后`,
   },
 } as const
 

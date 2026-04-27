@@ -4,25 +4,23 @@ import { Badge } from '@/components/ui/badge'
 import UserAvatar from '@/components/shared/UserAvatar'
 import { MessageSquare, Paperclip, CheckSquare } from 'lucide-react'
 import type { Task } from '@/types'
+import { useT } from '@/lib/i18n'
 
 interface Props {
   task: Task
   onClick: () => void
 }
 
-function isOverdue(dueDate: string) {
-  return new Date(dueDate) < new Date()
-}
-
-function isDueToday(dueDate: string) {
+function calendarDiff(dueDate: string): number {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const d = new Date(dueDate)
-  const today = new Date()
-  return d.getFullYear() === today.getFullYear() &&
-    d.getMonth() === today.getMonth() &&
-    d.getDate() === today.getDate()
+  const due = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 
 export default function TaskCard({ task, onClick }: Props) {
+  const { dict } = useT()
   const checkedCount = task.checklist?.filter((i) => i.checked).length ?? 0
   const totalChecklist = task._count?.checklist ?? task.checklist?.length ?? 0
   const attachmentCount = task._count?.attachments ?? task.attachments?.length ?? 0
@@ -84,20 +82,28 @@ export default function TaskCard({ task, onClick }: Props) {
           {task.aiModelTag && (
             <Badge variant="secondary" className="text-xs">{task.aiModelTag}</Badge>
           )}
-          {task.dueDate && (
-            <Badge
-              variant="outline"
-              className={`text-xs ${
-                isOverdue(task.dueDate)
-                  ? 'border-red-500 bg-red-50 text-red-600'
-                  : isDueToday(task.dueDate)
-                  ? 'border-yellow-500 bg-yellow-50 text-yellow-600'
+          {task.dueDate && (() => {
+            const diff = calendarDiff(task.dueDate)
+            const label = diff < 0
+              ? (dict.due_label_overdue as string)
+              : diff === 0 ? (dict.due_label_today as string)
+              : diff === 1 ? (dict.due_label_tomorrow as string)
+              : diff === 2 ? (dict.due_label_2days as string)
+              : diff <= 30 ? dict.due_label_n_days(diff)
+              : new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+            return (
+              <Badge
+                variant="outline"
+                className={`text-xs ${
+                  diff < 0 ? 'border-red-500 bg-red-50 text-red-600'
+                  : diff === 0 ? 'border-yellow-500 bg-yellow-50 text-yellow-600'
                   : ''
-              }`}
-            >
-              {new Date(task.dueDate).toLocaleDateString()}
-            </Badge>
-          )}
+                }`}
+              >
+                {label}
+              </Badge>
+            )
+          })()}
         </div>
 
         {/* Footer */}
