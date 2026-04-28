@@ -11,17 +11,24 @@ interface Props {
   onClick: () => void
 }
 
+function parseDueLocal(dueDate: string | Date): Date {
+  if (dueDate instanceof Date) return dueDate
+  const [y, m, d] = dueDate.slice(0, 10).split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function hoursUntilDue(dueDate: string | Date): number {
+  const due = parseDueLocal(dueDate)
+  const endOfDay = new Date(due.getFullYear(), due.getMonth(), due.getDate() + 1)
+  return Math.floor((endOfDay.getTime() - Date.now()) / (1000 * 60 * 60))
+}
+
 function calendarDiff(dueDate: string | Date): number {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  let due: Date
-  if (dueDate instanceof Date) {
-    due = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate())
-  } else {
-    const [y, m, d] = dueDate.slice(0, 10).split('-').map(Number)
-    due = new Date(y, m - 1, d)
-  }
-  return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  const due = parseDueLocal(dueDate)
+  const dueMidnight = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+  return Math.round((dueMidnight.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 
 export default function TaskCard({ task, onClick }: Props) {
@@ -88,20 +95,21 @@ export default function TaskCard({ task, onClick }: Props) {
             <Badge variant="secondary" className="text-xs">{task.aiModelTag}</Badge>
           )}
           {task.dueDate && (() => {
-            const diff = calendarDiff(task.dueDate)
-            const label = diff < 0
+            const hours = hoursUntilDue(task.dueDate)
+            const days = calendarDiff(task.dueDate)
+            const label = hours < 0
               ? (dict.due_label_overdue as string)
-              : diff === 0 ? (dict.due_label_today as string)
-              : diff === 1 ? (dict.due_label_tomorrow as string)
-              : diff === 2 ? (dict.due_label_2days as string)
-              : diff <= 30 ? dict.due_label_n_days(diff)
-              : new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+              : hours <= 48 ? dict.due_label_hours(Math.max(1, hours))
+              : days < 7 ? dict.due_label_n_days(days)
+              : days < 14 ? (dict.due_label_1week as string)
+              : days < 30 ? (dict.due_label_2weeks as string)
+              : (dict.due_label_1month as string)
             return (
               <Badge
                 variant="outline"
                 className={`text-xs ${
-                  diff < 0 ? 'border-red-500 bg-red-50 text-red-600'
-                  : diff === 0 ? 'border-yellow-500 bg-yellow-50 text-yellow-600'
+                  hours < 0 ? 'border-red-500 bg-red-50 text-red-600'
+                  : hours <= 24 ? 'border-yellow-500 bg-yellow-50 text-yellow-600'
                   : ''
                 }`}
               >

@@ -242,10 +242,11 @@ const translations = {
     due_shortcut_48h: '48h',
     due_shortcut_1week: '1 week',
     due_label_overdue: 'Overdue',
-    due_label_today: 'Today',
-    due_label_tomorrow: 'Tomorrow',
-    due_label_2days: 'Day after tomorrow',
+    due_label_hours: (h: number) => `${h}h`,
     due_label_n_days: (n: number) => `In ${n} days`,
+    due_label_1week: '1 week',
+    due_label_2weeks: '2 weeks',
+    due_label_1month: '1 month',
   },
   zh: {
     // Nav
@@ -484,10 +485,11 @@ const translations = {
     due_shortcut_48h: '48h',
     due_shortcut_1week: '1周',
     due_label_overdue: '已逾期',
-    due_label_today: '今天',
-    due_label_tomorrow: '明天',
-    due_label_2days: '后天',
+    due_label_hours: (h: number) => `${h}h`,
     due_label_n_days: (n: number) => `${n}天后`,
+    due_label_1week: '1周',
+    due_label_2weeks: '2周',
+    due_label_1month: '1个月',
   },
 } as const
 
