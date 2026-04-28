@@ -11,11 +11,16 @@ interface Props {
   onClick: () => void
 }
 
-function calendarDiff(dueDate: string): number {
+function calendarDiff(dueDate: string | Date): number {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const [y, m, d] = dueDate.slice(0, 10).split('-').map(Number)
-  const due = new Date(y, m - 1, d)
+  let due: Date
+  if (dueDate instanceof Date) {
+    due = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate())
+  } else {
+    const [y, m, d] = dueDate.slice(0, 10).split('-').map(Number)
+    due = new Date(y, m - 1, d)
+  }
   return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 
