@@ -204,10 +204,11 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  async function handleSave(overrides?: { priority?: number; cover?: string }) {
+  async function handleSave(overrides?: { priority?: number; cover?: string; dueDate?: string | null }) {
     if (!title.trim()) return
     const effectivePriority = overrides?.priority ?? priority
     const effectiveCover = overrides?.cover ?? cover
+    const effectiveDueDate = overrides && 'dueDate' in overrides ? overrides.dueDate : dueDate
 
     // Create mode
     if (!task && columnId) {
@@ -221,7 +222,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
             content: content || undefined,
             points: points ? parseInt(points) : undefined,
             aiModelTag: aiModelTag || undefined,
-            dueDate: dueDate || undefined,
+            dueDate: effectiveDueDate || undefined,
             cover: effectiveCover || undefined,
             folderPath: folderPath.trim() || undefined,
             priority: effectivePriority,
@@ -247,7 +248,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
           content,
           points: points ? parseInt(points) : null,
           aiModelTag: aiModelTag || null,
-          dueDate: dueDate || null,
+          dueDate: effectiveDueDate ?? null,
           cover: effectiveCover || null,
           folderPath: folderPath.trim() || null,
           priority: effectivePriority,
@@ -778,7 +779,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                         <button
                           key={days}
                           type="button"
-                          onClick={() => { setDueDate(val); setTimeout(handleSave, 0) }}
+                          onClick={() => { setDueDate(val); handleSave({ dueDate: val }) }}
                           className={`text-xs rounded-full border px-2 py-0.5 transition-colors ${active ? 'bg-primary/10 border-primary text-primary' : 'hover:bg-muted text-muted-foreground'}`}
                         >
                           {label as string}
@@ -788,7 +789,7 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                     {dueDate && (
                       <button
                         type="button"
-                        onClick={() => { setDueDate(''); setTimeout(handleSave, 0) }}
+                        onClick={() => { setDueDate(''); handleSave({ dueDate: null }) }}
                         className="text-xs rounded-full border px-2 py-0.5 text-muted-foreground hover:bg-muted transition-colors"
                       >
                         ×
