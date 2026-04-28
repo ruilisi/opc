@@ -14,8 +14,8 @@ interface Props {
 function calendarDiff(dueDate: string): number {
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const d = new Date(dueDate)
-  const due = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const [y, m, d] = dueDate.slice(0, 10).split('-').map(Number)
+  const due = new Date(y, m - 1, d)
   return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
 

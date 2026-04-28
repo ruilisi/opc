@@ -73,7 +73,18 @@ function NewLabelForm({ boardId, onCreated }: { boardId: string; onCreated: (lab
 function dateOffset(days: number): string {
   const d = new Date()
   d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function hourOffset(hours: number): string {
+  const d = new Date(Date.now() + hours * 3600 * 1000)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated, columnId, boardId, onCreated, onDeleted }: Props) {
@@ -771,21 +782,21 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                 <div className="flex flex-col gap-1.5">
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Due Date</span>
                   <div className="flex flex-wrap gap-1">
-                    {([0, 1, 2, 7, 30] as const).map((days, i) => {
-                      const val = dateOffset(days)
-                      const label = [dict.due_shortcut_today, dict.due_shortcut_tomorrow, dict.due_shortcut_2days, dict.due_shortcut_week, dict.due_shortcut_month][i]
-                      const active = dueDate === val
-                      return (
-                        <button
-                          key={days}
-                          type="button"
-                          onClick={() => { setDueDate(val); handleSave({ dueDate: val }) }}
-                          className={`text-xs rounded-full border px-2 py-0.5 transition-colors ${active ? 'bg-primary/10 border-primary text-primary' : 'hover:bg-muted text-muted-foreground'}`}
-                        >
-                          {label as string}
-                        </button>
-                      )
-                    })}
+                    {([
+                      { label: dict.due_shortcut_12h as string, val: hourOffset(12) },
+                      { label: dict.due_shortcut_24h as string, val: hourOffset(24) },
+                      { label: dict.due_shortcut_48h as string, val: hourOffset(48) },
+                      { label: dict.due_shortcut_1week as string, val: dateOffset(7) },
+                    ]).map(({ label, val }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => { setDueDate(val); handleSave({ dueDate: val }) }}
+                        className={`text-xs rounded-full border px-2 py-0.5 transition-colors ${dueDate === val ? 'bg-primary/10 border-primary text-primary' : 'hover:bg-muted text-muted-foreground'}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
                     {dueDate && (
                       <button
                         type="button"
