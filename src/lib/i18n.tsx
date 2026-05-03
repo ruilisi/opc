@@ -247,6 +247,14 @@ const translations = {
     due_label_1week: '1 week',
     due_label_2weeks: '2 weeks',
     due_label_1month: '1 month',
+    // Form field types
+    field_type_text: 'Text',
+    field_type_textarea: 'Long text',
+    field_type_email: 'Email',
+    field_type_number: 'Number',
+    field_type_date: 'Date',
+    field_type_select: 'Dropdown',
+    field_type_phone: 'Phone',
   },
   zh: {
     // Nav
@@ -490,6 +498,14 @@ const translations = {
     due_label_1week: '1周',
     due_label_2weeks: '2周',
     due_label_1month: '1个月',
+    // Form field types
+    field_type_text: '文本',
+    field_type_textarea: '长文本',
+    field_type_email: '邮箱',
+    field_type_number: '数字',
+    field_type_date: '日期',
+    field_type_select: '下拉选择',
+    field_type_phone: '电话',
   },
 } as const
 

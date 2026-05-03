@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { Plus, GripVertical, X, Copy, Check, ArrowLeft } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
+import { useT } from '@/lib/i18n'
 
 interface FormField {
   id?: string
@@ -31,15 +32,7 @@ interface BoardForm {
 
 interface Column { id: string; name: string }
 
-const FIELD_TYPES: { value: string; label: string }[] = [
-  { value: 'text', label: 'Text' },
-  { value: 'textarea', label: 'Long text' },
-  { value: 'email', label: 'Email' },
-  { value: 'number', label: 'Number' },
-  { value: 'date', label: 'Date' },
-  { value: 'select', label: 'Dropdown' },
-  { value: 'phone', label: 'Phone' },
-]
+const FIELD_TYPE_VALUES = ['text', 'textarea', 'email', 'number', 'date', 'select', 'phone'] as const
 
 const STATUS_OPTIONS = [
   { value: 'open', label: 'Open (anyone with link)' },
@@ -52,6 +45,11 @@ let saveTimeout: ReturnType<typeof setTimeout> | null = null
 export default function FormBuilderPage() {
   const { boardId, formId } = useParams<{ boardId: string; formId: string }>()
   const router = useRouter()
+  const { dict } = useT()
+  const fieldTypeLabel = (v: string): string => {
+    const key = `field_type_${v}` as keyof typeof dict
+    return (dict[key] as string) ?? v
+  }
   const [form, setForm] = useState<BoardForm | null>(null)
   const [columns, setColumns] = useState<Column[]>([])
   const [fields, setFields] = useState<FormField[]>([])
@@ -244,7 +242,7 @@ export default function FormBuilderPage() {
                                 onChange={(e) => updateField(i, { type: e.target.value })}
                                 className="h-7 rounded-md border border-input bg-transparent px-2 text-xs"
                               >
-                                {FIELD_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                {FIELD_TYPE_VALUES.map((t) => <option key={t} value={t}>{fieldTypeLabel(t)}</option>)}
                               </select>
                               <label className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
                                 <input type="checkbox" checked={field.required} onChange={(e) => updateField(i, { required: e.target.checked })} />
