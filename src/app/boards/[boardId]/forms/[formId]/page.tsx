@@ -31,7 +31,15 @@ interface BoardForm {
 
 interface Column { id: string; name: string }
 
-const FIELD_TYPES = ['text', 'textarea', 'email', 'number', 'date', 'select', 'phone']
+const FIELD_TYPES: { value: string; label: string }[] = [
+  { value: 'text', label: 'Text' },
+  { value: 'textarea', label: 'Long text' },
+  { value: 'email', label: 'Email' },
+  { value: 'number', label: 'Number' },
+  { value: 'date', label: 'Date' },
+  { value: 'select', label: 'Dropdown' },
+  { value: 'phone', label: 'Phone' },
+]
 
 const STATUS_OPTIONS = [
   { value: 'open', label: 'Open (anyone with link)' },
@@ -236,7 +244,7 @@ export default function FormBuilderPage() {
                                 onChange={(e) => updateField(i, { type: e.target.value })}
                                 className="h-7 rounded-md border border-input bg-transparent px-2 text-xs"
                               >
-                                {FIELD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                                {FIELD_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                               </select>
                               <label className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
                                 <input type="checkbox" checked={field.required} onChange={(e) => updateField(i, { required: e.target.checked })} />
