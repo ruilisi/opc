@@ -238,8 +238,9 @@ const translations = {
     tags_delete_confirm: 'Delete this tag?',
     // Due date shortcuts & labels
     due_shortcut_12h: '12h',
-    due_shortcut_24h: '24h',
-    due_shortcut_48h: '48h',
+    due_shortcut_1day: '1 day',
+    due_shortcut_2days: '2 days',
+    due_shortcut_3days: '3 days',
     due_shortcut_1week: '1 week',
     due_label_overdue: 'Overdue',
     due_label_hours: (h: number) => `${h}h`,
@@ -489,8 +490,9 @@ const translations = {
     tags_delete_confirm: '删除此标签？',
     // Due date shortcuts & labels
     due_shortcut_12h: '12h',
-    due_shortcut_24h: '24h',
-    due_shortcut_48h: '48h',
+    due_shortcut_1day: '1天',
+    due_shortcut_2days: '2天',
+    due_shortcut_3days: '3天',
     due_shortcut_1week: '1周',
     due_label_overdue: '已逾期',
     due_label_hours: (h: number) => `${h}h`,

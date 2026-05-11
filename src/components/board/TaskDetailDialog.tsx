@@ -784,8 +784,9 @@ export default function TaskDetailDialog({ taskId, open, onOpenChange, onUpdated
                   <div className="flex flex-wrap gap-1">
                     {([
                       { label: dict.due_shortcut_12h as string, val: hourOffset(12) },
-                      { label: dict.due_shortcut_24h as string, val: hourOffset(24) },
-                      { label: dict.due_shortcut_48h as string, val: hourOffset(48) },
+                      { label: dict.due_shortcut_1day as string, val: dateOffset(1) },
+                      { label: dict.due_shortcut_2days as string, val: dateOffset(2) },
+                      { label: dict.due_shortcut_3days as string, val: dateOffset(3) },
                       { label: dict.due_shortcut_1week as string, val: dateOffset(7) },
                     ]).map(({ label, val }) => (
                       <button
