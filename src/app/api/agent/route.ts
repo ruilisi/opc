@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
         getBoardSnapshot: `GET  ${apiBase}/agent`,
         getTask:          `GET  ${apiBase}/tasks/{taskId}`,
         createTask:       `POST ${apiBase}/tasks                              body: { columnId, title, content?, points?, aiModelTag? }`,
+        batchCreateTasks: `POST ${apiBase}/tasks/batch                       body: { tasks: [{ columnId, title, content? }] }  (max 500)`,
         updateTask:       `PATCH ${apiBase}/tasks/{taskId}                   body: { title?, content?, dueDate?, points?, aiModelTag?, folderPath? }`,
         moveTask:         `PATCH ${apiBase}/tasks/{taskId}/move              body: { columnId, order? }`,
         deleteTask:       `DELETE ${apiBase}/tasks/{taskId}`,
