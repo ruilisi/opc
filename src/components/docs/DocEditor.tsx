@@ -9,8 +9,10 @@ import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
 import Typography from '@tiptap/extension-typography'
 import { Bold, Italic, Heading1, Heading2, List, ListOrdered, Code, Code2, Image as ImageIcon, FileText, Strikethrough, TextQuote, Minus } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { serializeMarkdown, parseMarkdown } from '@/lib/doc-markdown'
 
 // Heading shortcuts via keymap — input rules can be blocked by the Collaboration plugin
 const MarkdownShortcuts = Extension.create({
@@ -117,6 +119,37 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
 
   if (!editor) return <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Loading editor…</div>
 
+  // Seed the markdown buffer from the live document when entering markdown mode.
+  function enterMarkdown() {
+    if (!editor) return
+    setMarkdownText(serializeMarkdown(editor.schema, editor.state.doc))
+    setShowMarkdown(true)
+  }
+
+  // Parse the markdown buffer back into the collaborative document. setContent
+  // dispatches a transaction, which y-prosemirror syncs to Hocuspocus — so the
+  // edit is persisted and broadcast in real time. Returns false on parse error
+  // so the caller can keep the user in markdown mode without losing their text.
+  function applyMarkdown(): boolean {
+    if (!editor) return false
+    try {
+      const doc = parseMarkdown(editor.schema, markdownText)
+      editor.commands.setContent(doc, { emitUpdate: true })
+      return true
+    } catch {
+      toast.error('Markdown 解析失败，请检查语法')
+      return false
+    }
+  }
+
+  function toggleMarkdown() {
+    if (showMarkdown) {
+      if (applyMarkdown()) setShowMarkdown(false)
+    } else {
+      enterMarkdown()
+    }
+  }
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {!readOnly && (
@@ -182,7 +215,7 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
         {!readOnly && (
           <button
             className="ml-auto flex items-center gap-1 hover:text-foreground"
-            onClick={() => setShowMarkdown((v) => !v)}
+            onClick={toggleMarkdown}
           >
             <FileText size={11} />
             {showMarkdown ? 'Rich text' : 'Markdown'}
@@ -194,6 +227,7 @@ export default function DocEditor({ docId, token, readOnly = false, hocuspocusUr
           className="flex-1 p-4 font-mono text-sm bg-muted/30 resize-none focus:outline-none"
           value={markdownText}
           onChange={(e) => setMarkdownText(e.target.value)}
+          onBlur={applyMarkdown}
           placeholder="Markdown source…"
         />
       ) : (
